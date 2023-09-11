@@ -1,0 +1,4 @@
+services:
+  money-orders:
+    image: node:18-alpine
+    command: sh -c "npm install && "
