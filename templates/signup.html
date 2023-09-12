@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="container-content">
+        <div class="header">
+            <h2>SIGNUP</h2>
+
+        </div>
+        <form action="/signup" method="POST">
+            <label for="role">Role:</label>
+            <select id="role" name="role">
+                <option value="user" class="roleDropDown">User</option>
+                <option value="admin" class="roleDropDown">Admin</option>
+            </select>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Signup</button>
+
+        </form>
+    </div>
+</div>
+</body>
+</html>
