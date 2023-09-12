@@ -1,4 +1,33 @@
 services:
   money-orders:
     image: node:18-alpine
-    command: sh -c "npm install && "
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - 3000:3000
+    working_dir: /money-orders
+    volumes:
+      - ./:/money-orders
+    environment:
+      PORT: 3000
+      PGUSER: root
+      PGHOST: postgres
+      PGPASSWORD: root
+      PGDATABASE: money_orders_db
+      PGPORT: 5432
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./utils/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    container_name: postgres-container
+    environment:
+      POSTGRES_DB: money_orders_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+volumes:
+  postgres_data:

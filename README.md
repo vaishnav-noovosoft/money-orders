@@ -1,6 +1,7 @@
 APIs
 - User API
     - List
+    - Create
 - Authentication
   - Login
   - Logout
