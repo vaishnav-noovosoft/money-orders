@@ -20,7 +20,7 @@ router.post('/login', async (req, res) => {
                 expiresIn: '1d'
             }
 
-            const token = await jwt.sign(user, '1d');
+            const token = await jwt.sign({ username: user.username }, '1d');
 
             return res.status(200).json({ token });
         } else {

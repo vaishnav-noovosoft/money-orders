@@ -12,6 +12,16 @@ const sign = async (payload, expiresIn) => {
     }
 }
 
+const verify = async (token) => {
+    try {
+        return await jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        console.error('Error verifying authentication token: ', err);
+        throw err;
+    }
+}
+
 module.exports = {
-    sign
+    sign,
+    verify
 }

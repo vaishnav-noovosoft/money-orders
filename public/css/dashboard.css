@@ -1,0 +1,75 @@
+:root {
+    --darkYellow: #F6BE00;
+    --blue: #1e90ff;
+    --white: rgba(0, 0, 0, 0.1);
+    --black: rgb(0, 0, 0);
+    --light-blue: rgba(30, 144, 255, 0.65)
+
+}
+body {
+    background-color: var(--blue);
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+}
+
+.container {
+    padding: 20px;
+}
+
+.transaction-history {
+    background-color: var(--darkYellow);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.transaction-history table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transaction-history table, .transaction-history th, .transaction-history td {
+    border: 1px solid white;
+}
+
+.transaction-history th, .transaction-history td {
+    padding: 10px;
+    text-align: left;
+}
+
+.transaction-form {
+    background-color: var(--darkYellow);
+    padding: 20px;
+    border-radius: 10px;
+    display: grid;
+    gap: 10px;
+
+    justify-items: center;
+}
+
+.transaction-form label, .transaction-form select {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.transaction-form button {
+    background-color: white;
+    color: blue;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.deposit{
+    margin-bottom: 20px;
+}
+.depositContent{
+    display: flex;
+}
+#amountDeposit{
+    margin: 10px;
+}

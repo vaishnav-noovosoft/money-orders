@@ -27,9 +27,9 @@ const checkUniqueUsername = async (req, res, next) => {
 // List users
 router.get('/', async (req, res) => {
    try {
-       const query = 'SELECT * FROM users';
+       const query = 'SELECT username FROM users';
        const result = await db.query(query);
-       res.status(200).json(result.rows);
+       res.status(200).json({ users: result.rows });
    } catch (err) {
        console.error('Error retrieving users', err);
        res.status(500).json({ error: 'Error retrieving users' });
