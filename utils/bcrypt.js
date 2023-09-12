@@ -11,18 +11,9 @@ async function getHash(plainText) {
     }
 }
 
-async function checkUser(username, plainPassword){
+async function verifyPassword(plainPassword, storedPasswordHash){
     try {
-        const query = 'SELECT password from users WHERE username = $1';
-        const values = [username];
-        const result = await db.query(query, values);
-
-        if(result.rows.length === 0) {
-            return false;
-        }
-
-        const user = result.rows[0];
-        return await bcrypt.compare(plainPassword, user.password);
+        return await bcrypt.compare(plainPassword, storedPasswordHash);
     } catch (err) {
         console.error('Error while validating password: ', err);
         throw err;
@@ -31,5 +22,5 @@ async function checkUser(username, plainPassword){
 
 module.exports = {
     getHash,
-    checkUser
+    verifyPassword
 }
