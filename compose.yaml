@@ -1,6 +1,6 @@
 services:
   money-orders:
-    image: node:18-alpine
+    image: node:18
     command: sh -c "npm install && npm run dev"
     ports:
       - 3000:3000
