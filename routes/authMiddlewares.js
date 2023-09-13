@@ -12,19 +12,17 @@ const authenticate = async (req, res, next)=> {
     if (!user) return res.status(404).json({error: 'User Not Found'});
 
     req.user = user;
-    req.role = user.role;
     next();
 }
 
-const authorize = async (req, res, next)=> {
-    const role = req.role;
+const authorize = (req, res, next)=> {
+    const role = req.user.role;
 
     if (role === 'user' || role === 'admin') {
         next();
     } else {
         return res.status(400).json({error: 'Invalid User Role'});
     }
-    next();
 }
 
 module.exports = {

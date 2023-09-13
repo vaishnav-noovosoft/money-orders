@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const {depositAmount, withdrawAmount, transferAmount} = require("../utils/transaction");
-const {getUser} = require('../utils/users');
+const { depositAmount, withdrawAmount, transferAmount } = require("../utils/transaction");
+const { getUser } = require('../utils/users');
+const {authenticate, authorize} = require("./authMiddlewares");
+
+router.use(authenticate);
+router.use(authorize);
 
 router.post('/', async (req, res) => {
-    const {type} = req.query;
+    const { type } = req.query;
 
     try {
         if (type === 'deposit') {
@@ -39,8 +43,6 @@ router.post('/', async (req, res) => {
             const toUserObject = await getUser(toUser);
             if(!toUserObject) return res.status(404).json({ error: 'toUser not found' });
 
-            console.log(fromUserObject, toUserObject);
-
             const transferTransaction= await transferAmount(fromUserObject.user_id, toUserObject.user_id, amount);
             if(!transferTransaction) return res.status(500).json({ error: 'Error while creating transaction' });
 
@@ -49,7 +51,7 @@ router.post('/', async (req, res) => {
             return res.status(401).json({ error: "Missing required parameter 'type'" });
         }
     } catch (err) {
-        console.log('Error: ', err)
+        console.log("err", err);
         res.status(500).json({ error: err.message });
     }
 })
