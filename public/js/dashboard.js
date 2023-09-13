@@ -16,8 +16,8 @@ const retrieveUsersFromDB = async () => {
     }
 }
 
-const listUsers = async () => {
-    const fromUserDeposit = document.getElementById('fromUserDeposit');
+const listUsers = async (element) => {
+    const fromUserDeposit = document.getElementById(element);
     const { users } = await retrieveUsersFromDB();
 
     users.forEach((user => {
@@ -31,4 +31,5 @@ const listUsers = async () => {
     }));
 }
 
-await listUsers();
+await listUsers('fromUserDeposit');
+await listUsers('fromUserWithdraw');

@@ -27,30 +27,40 @@
 <div class="container">
     <div class="transaction-form deposit">
         <h2>Deposit Money</h2>
-        <div class="">
-            <form class="depositContent">
-                <label for="fromUserDeposit">From User</label>
-                <select id="fromUserDeposit">
-                    <!-- Options will be populated from the database -->
-                </select>
-                <label for="amountDeposit">Amount</label>
-                <input type="number" id="amountDeposit" required>
+        <div class="deposit-form-div">
+            <form class="deposit-form">
+                <div class="input-group">
+                    <label for="fromUserDeposit">From User</label>
+                    <select id="fromUserDeposit">
+                        <!-- Options will be populated from the database -->
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="amountDeposit">Amount</label>
+                    <input class="form-input" type="number" id="amountDeposit" required>
+                </div>
                 <button type="submit">Deposit</button>
             </form>
         </div>
-
     </div>
     <div class="transaction-form withdraw">
         <h2>Withdraw Money</h2>
-        <form>
-            <label for="fromUserWithdraw">From User</label>
-            <select id="fromUserWithdraw">
-                <!-- Options will be populated from the database -->
-            </select>
-            <label for="amountWithdraw">Amount</label>
-            <input type="number" id="amountWithdraw" required>
-            <button type="submit">Withdraw</button>
-        </form>
+        <div class="withdraw-form-div">
+            <form class="withdraw-form">
+                <div class="input-group">
+                    <label for="fromUserWithdraw">From User</label>
+                    <select id="fromUserWithdraw">
+                        <!-- Options will be populated from the database -->
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="amountWithdraw">Amount</label>
+                    <input class="form-input" type="number" id="amountWithdraw" required>
+                </div>
+                <button type="submit">Withdraw</button>
+            </form>
+        </div>
     </div>
 </div>
 <script type="module" src="/js/clientConfig.js"></script>
