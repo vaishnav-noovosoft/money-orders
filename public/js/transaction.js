@@ -4,25 +4,42 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 
 const depositMoney = async (userId, amount) => {
-    const depositQuery = 'INSERT INTO transactions (type, to_user, amount) VALUES ($1, $2, $3)';
+    const depositQuery = 'INSERT INTO transactions (type, to_user, amount) VALUES ($1, $2, $3) RETURNING *';
     const depositValues = ['deposit', userId, amount];
-    await db.query(depositQuery, depositValues);
+    const result = await db.query(depositQuery, depositValues);
+
+    if (result.rows.length === 0) {
+        throw new Error('Error creating transaction');
+    }
+    return result.rows[0];
 };
 const withdrawMoney = async (userId, amount) => {
-    const withdrawQuery = 'INSERT INTO transactions (type, from_user, amount) values ($1, $2, $3)';
+    const withdrawQuery = 'INSERT INTO transactions (type, from_user, amount) values ($1, $2, $3) RETURNING *';
     const withdrawValues = ['withdraw', userId, amount];
-    await db.query(withdrawQuery, withdrawValues);
+    const result = await db.query(withdrawQuery, withdrawValues);
+
+    if (result.rows.length === 0) {
+        throw new Error('Error creating transaction');
+    }
+
+    return result.rows[0];
 }
 const transferMoney = async (fromUserId, toUserId, amount) => {
-    const transferMoneyQuery = 'INSERT INTO transactions (type, from_user,to_user,amount) values ($1,$2,$3,#4)';
+    const transferMoneyQuery = 'INSERT INTO transactions (type, from_user, to_user, amount) values ($1,$2,$3,#4) RETURNING *';
     const transferMoneyValues = ['transfer', fromUserId, toUserId, amount];
-    await db.query(transferMoneyQuery, transferMoneyValues);
+    const result = await db.query(transferMoneyQuery, transferMoneyValues);
+
+    if (result.rows.length === 0) {
+        throw new Error('Error creating transaction');
+    }
+
+    return result.rows[0];
 }
 
 
 const depositAmount = async (toUser, Amount) => {
     try {
-        await depositMoney(toUser, Amount);
+        return await depositMoney(toUser, Amount);
     } catch (error) {
         throw error;
     }
@@ -32,7 +49,7 @@ const depositAmount = async (toUser, Amount) => {
 const withdrawAmount = async (fromUser, Amount) => {
     try {
 
-        await withdrawMoney(fromUser, Amount);
+        return await withdrawMoney(fromUser, Amount);
     } catch (error) {
         throw error;
     }
@@ -40,8 +57,7 @@ const withdrawAmount = async (fromUser, Amount) => {
 
 const transferAmount = async (fromUser, toUser, Amount) => {
     try {
-
-        await transferMoney(fromUser, toUser, Amount);
+        return await transferMoney(fromUser, toUser, Amount);
     } catch (error) {
         throw error;
     }
