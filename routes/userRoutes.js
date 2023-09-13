@@ -39,13 +39,13 @@ router.get('/', async (req, res) => {
 // Create a new user
 router.post('/', checkUniqueUsername, async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, role } = req.body;
         const hashedPassword = await getHash(password);
-        const query = 'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *';
-        const values = [username, hashedPassword];
+        const query = 'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING *';
+        const values = [username, hashedPassword, role];
         const result = await db.query(query, values);
 
-        res.status(201).json(result.rows[0]);
+        res.status(201).json({user: { username: result.rows[0].username, role: result.rows[0].role }});
     } catch (err) {
         console.error('Error creating user: ', err);
         res.status(500).json({ error: 'Error creating user'});

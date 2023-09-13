@@ -29,18 +29,20 @@
         <h2>Deposit Money</h2>
         <div class="deposit-form-div">
             <form class="deposit-form">
-                <div class="input-group">
-                    <label for="fromUserDeposit">From User</label>
-                    <select id="fromUserDeposit">
-                        <!-- Options will be populated from the database -->
-                    </select>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="fromUserDeposit">From User</label>
+                        <select class="form-input" id="fromUserDeposit">
+                            <option value="">Select user</option>
+                            <!-- Options will be populated from the database -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="amountDeposit">Amount</label>
+                        <input class="form-input" type="text" id="amountDeposit" required>
+                    </div>
                 </div>
-
-                <div class="input-group">
-                    <label for="amountDeposit">Amount</label>
-                    <input class="form-input" type="number" id="amountDeposit" required>
-                </div>
-                <button type="submit">Deposit</button>
+                <button class="btn-submit" type="submit">Deposit</button>
             </form>
         </div>
     </div>
@@ -48,17 +50,20 @@
         <h2>Withdraw Money</h2>
         <div class="withdraw-form-div">
             <form class="withdraw-form">
-                <div class="input-group">
-                    <label for="fromUserWithdraw">From User</label>
-                    <select id="fromUserWithdraw">
-                        <!-- Options will be populated from the database -->
-                    </select>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="fromUserWithdraw">From User</label>
+                        <select class="form-input" id="fromUserWithdraw">
+                            <option value="">Select user</option>
+                            <!-- Options will be populated from the database -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="amountWithdraw">Amount</label>
+                        <input class="form-input" type="text" id="amountWithdraw" required>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label for="amountWithdraw">Amount</label>
-                    <input class="form-input" type="number" id="amountWithdraw" required>
-                </div>
-                <button type="submit">Withdraw</button>
+                <button class="btn-submit" type="submit">Withdraw</button>
             </form>
         </div>
     </div>

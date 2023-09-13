@@ -19,12 +19,12 @@ app.get("/api", (req
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const transactionRoutes= require('./routes/transactionRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const siteRoutes = require('./routes/siteRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
-app.use('/admin', adminRoutes);
+app.use('/', siteRoutes);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
