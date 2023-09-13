@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup Page</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../public/style.css">
 </head>
 <body>
 <div class="container">
@@ -16,8 +16,8 @@
         <form action="/signup" method="POST">
             <label for="role">Role:</label>
             <select id="role" name="role">
-                <option value="user" class="roleDropDown">User</option>
-                <option value="admin" class="roleDropDown">Admin</option>
+                <option value="user" class="roleDropDown" name="user">User</option>
+                <option value="admin" class="roleDropDown" name="admin">Admin</option>
             </select>
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
