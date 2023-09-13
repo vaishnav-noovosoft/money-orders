@@ -38,8 +38,6 @@ const listUsers = async (element) => {
     const fromUserDeposit = document.getElementById(element);
     const { users } = await retrieveUsersFromDB();
 
-    console.log(users);
-
     users.forEach((user => {
         const option = document.createElement('option');
 

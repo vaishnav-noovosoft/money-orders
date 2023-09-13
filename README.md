@@ -8,3 +8,5 @@ APIs
 - Transactions
   - Create
   - List
+
+- MailHog installation - https://kinsta.com/blog/mailhog/
