@@ -10,9 +10,11 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     "type" VARCHAR(255) NOT NULL,
-    from_user INT REFERENCES user(user_id),
-    to_user INT REFERENCES user(user_id),
+    from_user INT REFERENCES users(user_id),
+    to_user INT REFERENCES users(user_id),
     amount FLOAT,
     date_created TIMESTAMP DEFAULT NOW()
-);
+    );
+
+
 
