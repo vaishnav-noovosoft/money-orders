@@ -41,7 +41,6 @@ router.post('/', checkUniqueUsername, async (req, res) => {
     try {
         const { username, password } = req.body;
         const hashedPassword = await getHash(password);
-
         const query = 'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *';
         const values = [username, hashedPassword];
         const result = await db.query(query, values);
