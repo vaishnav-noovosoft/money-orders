@@ -1,21 +1,18 @@
-import {getHeader, HOST} from './clientConfig.js';
-const messageDiv = document.getElementById('form-message');
+import { HOST } from "./clientConfig.js";
 
-
-
-const authenticate = (formData) => {
+const authenticate = (username, password) => {
     try {
         fetch(HOST + '/api/auth/login', {
             method: 'POST',
-            body: formData, // Serialized data
+            body: JSON.stringify({ "username": username, "password": password }),
             headers: {
-                // Specify the content type as 'application/x-www-form-urlencoded'
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json'
             }
         })
             .then((res) => res.json())
             .then((data) => {
                 if (data.error) {
+                    const messageDiv = document.getElementById('form-message');
                     const message = document.createTextNode(data.error);
                     messageDiv.setAttribute('class', 'error');
                     messageDiv.appendChild(message);
@@ -27,18 +24,22 @@ const authenticate = (formData) => {
                         window.location.href = `/dashboard?role=${userRole}`;
                     } else console.error('Unexpected error!');
                 }
-            })
+            });
     } catch (err) {
         console.error('Error while authentication: ', err);
     }
 }
 
-const loginForm = document.getElementById('login-form');
+const loginForm = document.getElementById('form');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
 
 loginForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const formData = new FormData(loginForm);
-    console.log(formData);
-    authenticate(formData);
+   const username = usernameInput.value;
+   const password = passwordInput.value;
+
+   authenticate(username, password);
 });
+

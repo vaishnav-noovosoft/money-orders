@@ -3,6 +3,24 @@ import { getHeader, HOST } from './clientConfig.js';
 // Define the request headers, including the Authorization header
 const headers = getHeader();
 
+const checkTokenValidity = () => {
+    fetch(HOST + '/api/auth/verify-token', {
+        method: "GET",
+        headers: headers
+    })
+        .then((res) => res.json())
+        .then(data => {
+            if(data.error) {
+                window.location.href = '/api/auth/login';
+            }
+        })
+        .catch((err) => {
+            window.location.href = '/api/auth/login';
+        });
+}
+
+checkTokenValidity();
+
 const retrieveUsersFromDB = async () => {
     try {
         const data = await fetch(HOST + '/api/users', {
@@ -36,4 +54,3 @@ const listUsers = async (element) => {
 await listUsers('fromUserDeposit');
 await listUsers('fromUserWithdraw');
 
-console.log('Hello');
