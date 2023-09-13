@@ -9,7 +9,7 @@ services:
       - ./:/money-orders
     environment:
       PORT: 3000
-      PGUSER: root
+      PGUSER: postgres
       PGHOST: postgres
       PGPASSWORD: root
       PGDATABASE: money_orders_db
@@ -25,7 +25,7 @@ services:
     container_name: postgres-container
     environment:
       POSTGRES_DB: money_orders_db
-      POSTGRES_USER: root
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
     ports:
       - "5432:5432"
