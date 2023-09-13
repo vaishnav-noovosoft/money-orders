@@ -1,11 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const { depositAmount, withdrawAmount, transferAmount } = require("../utils/transaction");
+const db = require('../db/postgres');
+const { depositAmount, withdrawAmount, transferAmount, retrieveTransactions } = require("../utils/transaction");
 const { getUser } = require('../utils/users');
-const {authenticate, authorize} = require("./authMiddlewares");
+const { authenticate, authorize } = require("./authMiddlewares");
 
 router.use(authenticate);
 router.use(authorize);
+
+router.get('/', async (req, res) => {
+    const userRole = req.user.role;
+    const limit = req.query.limit;
+
+    if(!limit) return res.status(401).json({ error: 'Missing limit parameter' });
+
+    try {
+        const transactions= await retrieveTransactions(req.user, userRole, limit);
+        return res.status(200).json({ transactions });
+    }
+    catch (err) {
+        console.error('Error retrieving transactions', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
 
 router.post('/', async (req, res) => {
     const { type } = req.query;
@@ -36,6 +53,8 @@ router.post('/', async (req, res) => {
         else if (type === 'transfer') {
             const {fromUser, toUser, amount} = req.body;
             if(!fromUser || !toUser || !amount) return res.status(401).json({ error: 'Missing required data' });
+
+            if(fromUser === toUser) return res.status(401).json({ error: 'Invalid parameters' });
 
             const fromUserObject = await getUser(fromUser);
             if(!fromUserObject) return res.status(404).json({ error: 'fromUser not found' });

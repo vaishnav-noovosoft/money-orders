@@ -31,9 +31,40 @@ const transferAmount = async (fromUserId, toUserId, amount) => {
     return result.rows[0];
 }
 
+const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
+    if (userRole === 'admin') {
+        const query = 'SELECT t.*, u.username AS from_username, v.username AS to_username\n' +
+            'FROM transactions t\n' +
+            'LEFT JOIN users u ON t.from_user = u.user_id\n' +
+            'LEFT JOIN users v ON t.to_user = v.user_id\n' +
+            'ORDER BY t.date_created DESC\n' +
+            'LIMIT $1;';
+        const values = [limit];
+        const result = await db.query(query, values);
+
+        return result.rows;
+    } else if (userRole === 'user') {
+        const query = 'SELECT t.*, u.username AS from_username, v.username AS to_username\n' +
+            'FROM transactions t\n' +
+            'LEFT JOIN users u ON t.from_user = u.user_id\n' +
+            'LEFT JOIN users v ON t.to_user = v.user_id\n' +
+            'WHERE u.username = $1 OR v.username = $1\n' +
+            'ORDER BY t.date_created DESC\n' +
+            'LIMIT $2';
+        const values = [user.username, limit];
+        const result = await db.query(query, values);
+
+        return result.rows;
+    } else {
+        return null;
+    }
+};
+
+
 module.exports = {
     depositAmount,
     withdrawAmount,
-    transferAmount
+    transferAmount,
+    retrieveTransactions
 }
 
