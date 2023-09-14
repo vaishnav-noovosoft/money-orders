@@ -25,6 +25,16 @@ const authorize = (req, res, next)=> {
     }
 }
 
+const adminOnly = (req, res, next) => {
+    const userRole = req.user.role;
+
+    if(userRole === 'admin') {
+        next();
+    } else {
+        return res.status(403).send('Forbidden Access');
+    }
+}
+
 const checkEmail = (req, res, next) => {
     const email = req.body.email;
 
@@ -39,5 +49,6 @@ const checkEmail = (req, res, next) => {
 module.exports = {
     authenticate,
     authorize,
+    adminOnly,
     checkEmail
 }

@@ -49,7 +49,7 @@ const verifyAuthToken = async (req, res, next) => {
 }
 
 router.get('/verify-token', verifyAuthToken, async (req, res) => {
-    return res.status(200).json({ message: 'ok' });
+    return res.status(200).json({ message: 'ok', user:  { role: req.user.role }});
 });
 
 module.exports = router;
