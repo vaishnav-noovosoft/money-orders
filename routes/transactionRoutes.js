@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db/postgres');
-const { depositAmount, withdrawAmount, transferAmount, retrieveTransactions } = require("../utils/transaction");
+const { depositAmount, withdrawAmount, transferAmount, retrieveTransactions, fetch1OldestTransactions} = require("../utils/transaction");
 const { getUser } = require('../utils/users');
 const { authenticate, authorize, adminOnly} = require("./middlewares");
 
@@ -73,7 +72,11 @@ router.post('/', adminOnly, async (req, res) => {
         console.log("err", err);
         res.status(500).json({ error: err.message });
     }
-})
+});
+
+router.get('/fetch10', fetch1OldestTransactions, async (err, req, res) => {
+
+});
 
 module.exports = router;
 

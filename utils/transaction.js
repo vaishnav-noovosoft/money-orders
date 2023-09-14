@@ -1,4 +1,5 @@
 const db = require("../db/postgres");
+const pool = require("../db/postgresPool");
 
 const depositAmount = async (userId, amount) => {
     const depositQuery = 'INSERT INTO transactions (type, to_user, amount) VALUES ($1, $2, $3) RETURNING *';
@@ -62,11 +63,93 @@ const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
     }
 };
 
+// Middleware to fetch the oldest 10 transactions
+async function fetch1OldestTransactions(req, res, next) {
+    try {
+        // Fetch the oldest 10 transactions from the database
+        const query = `
+          SELECT *
+          FROM transactions
+          ORDER BY date_created ASC
+          LIMIT 10;
+        `;
+
+        const { rows } = await pool.query(query);
+
+        res.locals.oldestTransactions = rows;
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Function to fetch the oldest 10 transactions
+async function fetchOldestTransactions() {
+    try {
+        // Fetch the oldest 10 transactions from the database
+        const query = `
+          SELECT *
+          FROM transactions
+          ORDER BY timestamp ASC
+          LIMIT 10;
+        `;
+
+        const { rows } = await pool.query(query);
+
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Function to fetch the next 10 transactions
+async function fetchNextTransactions(lastOldestTimestamp) {
+    try {
+        // Fetch the next 10 transactions after the provided timestamp
+        const query = `
+          SELECT *
+          FROM transactions
+          WHERE timestamp > $1
+          ORDER BY timestamp ASC
+          LIMIT 10;
+        `;
+
+        const { rows } = await pool.query(query, [lastOldestTimestamp]);
+
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function executeTransaction() {
+    const client = await pool.connect(); // Get a client from the pool
+
+    try {
+        // Begin the transaction
+        await client.query('BEGIN');
+
+        // Perform your transaction operations using the client
+        // For example, you can execute SQL statements here
+
+        // If the transaction is successful, commit it
+        await client.query('COMMIT');
+    } catch (err) {
+        // If an error occurs, rollback the transaction
+        await client.query('ROLLBACK');
+        throw err; // Handle the error or propagate it
+    } finally {
+        // Release the client back to the pool
+        client.release();
+    }
+}
 
 module.exports = {
     depositAmount,
     withdrawAmount,
     transferAmount,
-    retrieveTransactions
+    retrieveTransactions,
+    fetch1OldestTransactions,
+    fetchNextTransactions
 }
 
