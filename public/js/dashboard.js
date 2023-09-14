@@ -1,7 +1,38 @@
-import { getHeader, HOST } from './clientConfig.js';
+import {getHeader, HOST} from './clientConfig.js';
 
 // Define the request headers, including the Authorization header
 const headers = getHeader();
+const emailButton = document.getElementById('emailButton')
+const send = () => {
+    const limit = 15;
+    try {
+        fetch(HOST + `/api/mail/transaction-history?limit=${limit}`, {
+            method: "POST",
+            headers: headers
+        })
+            .then((res) => {
+                return res.json();
+            })
+            .then(async data => {
+                if (data.error) {
+                    console.error(data);
+                } else {
+                    setTimeout(changeInnerHTML, 5000);
+                    console.log("Email sent successfully")
+                }
+            })
+    } catch (err) {
+        console.error('Error while sending Email', err);
+    }
+}
+emailButton.addEventListener("click", send);
+function changeInnerHTML() {
+    const myButton = document.getElementById("myButton");
+    myButton.innerHTML = "Sent";
+}
+
+
+
 
 const checkTokenValidity = () => {
     fetch(HOST + '/api/auth/verify-token', {
@@ -9,20 +40,23 @@ const checkTokenValidity = () => {
         headers: headers
     })
         .then((res) => res.json())
-        .then (async data => {
-            if(data.error) {
+        .then(async data => {
+            if (data.error) {
                 window.location.href = '/api/auth/login';
             } else {
                 const role = data.user.role;
                 if (role === "user") {
                     removeElementByClassName("adminContainer");
                     await fetchTransactions();
-                }
-                else{
+                } else {
+
+                    const emailButton = document.getElementById("emailButton");
+                    emailButton.remove();
                     await listUsers('toUserDeposit');
                     await listUsers('fromUserWithdraw');
                     await listUsers('toUserTransfer');
                     await listUsers('fromUserTransfer');
+                    await fetchTransactions();
                 }
 
 // Check the user's role and remove the admin container if it's "user"
@@ -41,11 +75,14 @@ function removeElementByClassName(className) {
     removeAdmin.forEach(element => {
         element.remove();
     });
+
     const body = document.body;
     body.style.display = "block";
-    body.style.width= "80%";
-    body.style.margin= "auto";
+    body.style.width = "80%";
+    body.style.margin = "auto";
+
 }
+
 const retrieveUsersFromDB = async () => {
     try {
         const data = await fetch(HOST + '/api/users', {
@@ -64,7 +101,7 @@ const listUsers = async (element) => {
     const usersSelect = document.getElementById(element);
     console.log('select ', usersSelect);
 
-    const { users } = await retrieveUsersFromDB();
+    const {users} = await retrieveUsersFromDB();
 
     users.forEach((user => {
         const option = document.createElement('option');
@@ -116,15 +153,14 @@ const fetchTransactions = async () => {
         })
             .then((res) => res.json())
             .then(data => {
-                if(data.error)
+                if (data.error)
                     console.error(data);
                 else {
                     console.log(data.transactions);
                     populateTableWithTransactions(data.transactions);
                 }
             });
-    }
-    catch (err) {
+    } catch (err) {
         console.error('Error while retrieving transactions', err);
     }
 }
@@ -132,14 +168,11 @@ const fetchTransactions = async () => {
 const removeTransactions = () => {
     const tbody = document.getElementById('table-body');
 
-    while(tbody.firstChild) {
+    while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
     }
 }
-const role = data.user.role;
-if(role === 'user'){
 
-}
 
 await fetchTransactions();
 
@@ -165,15 +198,15 @@ depositForm.addEventListener('submit', (event) => {
         })
             .then((res) => res.json())
             .then(async (data) => {
-               if(data.error) {
-                   console.error(data);
-               } else {
-                   removeTransactions();
-                   await fetchTransactions();
-               }
+                if (data.error) {
+                    console.error(data);
+                } else {
+                    removeTransactions();
+                    await fetchTransactions();
+                }
             });
+    } catch (err) {
     }
-    catch (err) {}
 });
 
 withdrawForm.addEventListener('submit', (event) => {
@@ -193,7 +226,7 @@ withdrawForm.addEventListener('submit', (event) => {
         })
             .then(res => res.json())
             .then(async data => {
-                if(data.error) {
+                if (data.error) {
                     console.error(data);
                 } else {
                     removeTransactions();
@@ -203,8 +236,7 @@ withdrawForm.addEventListener('submit', (event) => {
             .catch(err => {
                 console.error(err);
             });
-    }
-    catch (err) {
+    } catch (err) {
         console.error(err);
     }
 });
@@ -215,34 +247,33 @@ transferForm.addEventListener('submit', (event) => {
     const fromUser = document.getElementById('fromUserTransfer').value;
     const toUser = document.getElementById('toUserTransfer').value;
 
-    if(fromUser === toUser) return;
+    if (fromUser === toUser) return;
 
     const amount = document.getElementById('amountTransfer').value;
 
     try {
-       fetch(HOST + '/api/transactions?type=transfer', {
-           method: 'POST',
-           headers: headers,
-           body: JSON.stringify({
-               "fromUser": fromUser,
-               "toUser": toUser,
-               "amount": amount
-           })
-       })
-           .then(res => res.json())
-           .then(async data => {
-               if(data.error) {
-                   console.error(data);
-               } else {
-                   removeTransactions();
-                   await fetchTransactions();
-               }
-           })
-           .catch(err => {
-               console.error(err);
-           });
-    }
-    catch (err) {
+        fetch(HOST + '/api/transactions?type=transfer', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                "fromUser": fromUser,
+                "toUser": toUser,
+                "amount": amount
+            })
+        })
+            .then(res => res.json())
+            .then(async data => {
+                if (data.error) {
+                    console.error(data);
+                } else {
+                    removeTransactions();
+                    await fetchTransactions();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    } catch (err) {
         console.error(err);
     }
 });

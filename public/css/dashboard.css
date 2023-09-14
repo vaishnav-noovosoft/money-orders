@@ -103,3 +103,21 @@ body {
 .transfer {
     margin-top: 1rem;
 }
+#emailButton{
+    float: right;
+    margin-top: 55px;
+    margin-right: 40px;
+}
+#myButton{
+    display: block;
+
+    background-color: #007acc;
+    color: white;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 1px white;
+
+}
+#myButton:hover{
+    background-color: darkblue;
+}
