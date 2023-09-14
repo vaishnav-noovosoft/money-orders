@@ -39,10 +39,12 @@ router.get('/', async (req, res) => {
 // Create a new user
 router.post('/', checkUniqueUsername, async (req, res) => {
     try {
-        const { username, password, role } = req.body;
+        const { username, password, role, email } = req.body;
+        if(!username || !password || !role || !email) return res.status(400).json({ error: 'Missing Required Fields in Request Body' });
+
         const hashedPassword = await getHash(password);
-        const query = 'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING *';
-        const values = [username, hashedPassword, role];
+        const query = 'INSERT INTO users (username, password, role, email) VALUES ($1, $2, $3, $4) RETURNING *';
+        const values = [username, hashedPassword, role, email];
         const result = await db.query(query, values);
 
         res.status(201).json({user: { username: result.rows[0].username, role: result.rows[0].role }});

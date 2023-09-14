@@ -25,7 +25,19 @@ const authorize = (req, res, next)=> {
     }
 }
 
+const checkEmail = (req, res, next) => {
+    const email = req.body.email;
+
+    if(!email) return res.status(400).json({ error: 'Invalid Email' });
+
+    const emailRegex = /^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$/;
+    if(emailRegex.test(email)) next();
+
+    return res.status(400).json({ error: 'Invalid Email' });
+}
+
 module.exports = {
     authenticate,
-    authorize
+    authorize,
+    checkEmail
 }

@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
 
         if(isValidUser) {
             const token = await jwt.sign(user, '1d');
-            return res.status(200).json({ token, userRole: user.role });
+            return res.status(200).json({ token });
         } else {
             res.status(404).json({ error: 'User not found' });
         }
