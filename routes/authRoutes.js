@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
 
         if(isValidUser) {
             const token = await jwt.sign(user, '1d');
-            return res.status(200).json({ token, userRole: user.role });
+            return res.status(200).json({ token });
         } else {
             res.status(404).json({ error: 'User not found' });
         }
@@ -49,7 +49,7 @@ const verifyAuthToken = async (req, res, next) => {
 }
 
 router.get('/verify-token', verifyAuthToken, async (req, res) => {
-    return res.status(200).json({ message: 'ok' });
+    return res.status(200).json({ message: 'ok', user:  { role: req.user.role }});
 });
 
 module.exports = router;

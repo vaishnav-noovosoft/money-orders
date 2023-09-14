@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db/postgres');
 const { depositAmount, withdrawAmount, transferAmount, retrieveTransactions } = require("../utils/transaction");
 const { getUser } = require('../utils/users');
-const { authenticate, authorize } = require("./authMiddlewares");
+const { authenticate, authorize } = require("./middlewares");
 
 router.use(authenticate);
 router.use(authorize);

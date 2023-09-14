@@ -12,6 +12,8 @@ const checkTokenValidity = () => {
         .then(data => {
             if(data.error) {
                 window.location.href = '/api/auth/login';
+            } else {
+                const role = data.user.role;
             }
         })
         .catch((err) => {

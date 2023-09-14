@@ -4,7 +4,7 @@ const jwt=require('jsonwebtoken');
 const getUser = async (username) => {
     try {
 
-        const query = 'SELECT user_id, username, password, role FROM users WHERE username = $1';
+        const query = 'SELECT user_id, username, password, role, email FROM users WHERE username = $1';
         const values = [username];
         const result = await db.query(query, values);
         if(result.rows.length === 0) {
