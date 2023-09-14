@@ -79,6 +79,7 @@ body {
 }
 
 .btn-submit {
+    cursor: pointer;
     height: 2.5rem;
     font-size: 1rem;
     padding: 0.3rem 1rem;
@@ -87,4 +88,18 @@ body {
     border-radius: 0.5rem;
     color: #007acc;
     width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover {
+    background-color: #007acc;
+    color: white;
+}
+
+.btn-transfer {
+    margin-top: 1rem;
+}
+
+.transfer {
+    margin-top: 1rem;
 }

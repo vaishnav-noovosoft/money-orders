@@ -1,73 +1,77 @@
 const express = require('express');
-const db = require("../db/postgres");
 const router = express.Router();
-const jwt = require('../utils/jwt');
-const {depositAmount, withdrawAmount, transferAmount} = require("../public/js/transaction");
-const {getUser} = require('../utils/users');
+const db = require('../db/postgres');
+const { depositAmount, withdrawAmount, transferAmount, retrieveTransactions } = require("../utils/transaction");
+const { getUser } = require('../utils/users');
+const { authenticate, authorize } = require("./authMiddlewares");
 
-const verifyType = async (req, res, next) => {
+router.use(authenticate);
+router.use(authorize);
+
+router.get('/', async (req, res) => {
+    const userRole = req.user.role;
+    const limit = req.query.limit;
+
+    if(!limit) return res.status(401).json({ error: 'Missing limit parameter' });
+
     try {
-
-        const authHeader = req.headers.authorization;
-
-        const [bearer, token] = authHeader.split(' ');
-
-        if (bearer !== 'Bearer' && !token) {
-
-            return res.status(401).json({error: 'Invalid Authorization'})
-
-        }
-
-        const user = await jwt.verify(token);
-        if (!user) {
-            console.log('user not found');
-            return res.status(404).json({error: 'User not found'});
-        }
-        const {role} = req.body;
-
-        if (role === 'user' || role === 'admin') {
-
-            next();
-        } else {
-            console.log('role error');
-            return res.status(400).json({error: 'Required Type not Present'})
-        }
-    } catch (err) {
-        res.status(500).json({error: 'Server error'});
+        const transactions= await retrieveTransactions(req.user, userRole, limit);
+        return res.status(200).json({ transactions });
     }
+    catch (err) {
+        console.error('Error retrieving transactions', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
 
-}
-
-router.post('/', verifyType, async (req, res) => {
-
-    const {type} = req.query;
-    console.log(type);
+router.post('/', async (req, res) => {
+    const { type } = req.query;
 
     try {
-
         if (type === 'deposit') {
             const {toUser, amount} = req.body;
+            if(!toUser || !amount) return res.status(401).json({ error: 'Missing toUser or amount' });
+
             const user = await getUser(toUser);
+            if(!user) return res.status(404).json({ error: 'User not found' });
+
             const depositTransaction = await depositAmount(user.user_id, amount);
             return res.status(201).json({"transaction": depositTransaction});
         }
         else if (type === 'withdraw') {
             const {fromUser, amount} = req.body;
+            if(!fromUser || !amount) return res.status(401).json({ error: 'Missing fromUser or amount' });
+
             const user = await getUser(fromUser);
+            if(!user) return res.status(404).json({ error: 'User not found' });
+
             const withdrawTransaction = await withdrawAmount(user.user_id, amount);
+            if(!withdrawTransaction) return  res.status(500).json({ error: 'Error in creating transaction' });
+
             return res.status(201).json({"transaction": withdrawTransaction});
         }
         else if (type === 'transfer') {
             const {fromUser, toUser, amount} = req.body;
-            const fromUserObject = await getUser(fromUser);
-            const toUserObject = await getUser(toUser);
+            if(!fromUser || !toUser || !amount) return res.status(401).json({ error: 'Missing required data' });
 
-            const transferTransaction = await transferAmount(fromUserObject.user_id, toUserObject.user_id, amount);
-            console.log(transferTransaction);
+            if(fromUser === toUser) return res.status(401).json({ error: 'Invalid parameters' });
+
+            const fromUserObject = await getUser(fromUser);
+            if(!fromUserObject) return res.status(404).json({ error: 'fromUser not found' });
+
+            const toUserObject = await getUser(toUser);
+            if(!toUserObject) return res.status(404).json({ error: 'toUser not found' });
+
+            const transferTransaction= await transferAmount(fromUserObject.user_id, toUserObject.user_id, amount);
+            if(!transferTransaction) return res.status(500).json({ error: 'Error while creating transaction' });
+
             return res.status(201).json({"transaction": transferTransaction});
+        } else {
+            return res.status(401).json({ error: "Missing required parameter 'type'" });
         }
     } catch (err) {
-        res.status(500).json({error: err.message});
+        console.log("err", err);
+        res.status(500).json({ error: err.message });
     }
 })
 

@@ -13,12 +13,13 @@
         <table>
             <thead>
             <tr>
-                <th>Date</th>
-                <th>Transaction Type</th>
+                <th>Type</th>
+                <th>From username</th>
+                <th>To username</th>
                 <th>Amount</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="table-body">
             <!-- Rows for transaction history will be fetched from the database -->
             </tbody>
         </table>
@@ -28,11 +29,11 @@
     <div class="transaction-form deposit">
         <h2>Deposit Money</h2>
         <div class="deposit-form-div">
-            <form id = "deposit-form" class="deposit-form">
+            <form class="deposit-form" id="form-deposit">
                 <div class="form-group">
                     <div class="input-group">
-                        <label for="fromUserDeposit">From User</label>
-                        <select class="form-input" id="fromUserDeposit">
+                        <label for="toUserDeposit">To User</label>
+                        <select class="form-input" id="toUserDeposit" >
                             <option value="">Select user</option>
                             <!-- Options will be populated from the database -->
                         </select>
@@ -42,14 +43,14 @@
                         <input class="form-input" type="text" id="amountDeposit" required>
                     </div>
                 </div>
-                <button class="btn-submit" type="submit">Deposit</button>
+                <button id="btn-deposit" class="btn-submit" type="submit">Deposit</button>
             </form>
         </div>
     </div>
     <div class="transaction-form withdraw">
         <h2>Withdraw Money</h2>
         <div class="withdraw-form-div">
-            <form class="withdraw-form">
+            <form class="withdraw-form" id="form-withdraw">
                 <div class="form-group">
                     <div class="input-group">
                         <label for="fromUserWithdraw">From User</label>
@@ -63,7 +64,38 @@
                         <input class="form-input" type="text" id="amountWithdraw" required>
                     </div>
                 </div>
-                <button class="btn-submit" type="submit">Withdraw</button>
+                <button id="btn-withdraw" class="btn-submit" type="submit">Withdraw</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="transaction-form transfer">
+        <h2>Transfer Money</h2>
+        <div class="transfer-form-div">
+            <form class="transfer-form" id="form-transfer">
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="fromUserTransfer">From User</label>
+                        <select class="form-input" id="fromUserTransfer">
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="toUserTransfer">To User</label>
+                        <select class="form-input" id="toUserTransfer">
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group">
+                        <label for="amountTransfer">Amount</label>
+                        <input type="text" name="amountTransfer" id="amountTransfer" class="form-input" required />
+                    </div>
+                    <div class="input-group">
+                        <button id="btn-transfer" type="submit" class="btn-submit btn-transfer">Transfer</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

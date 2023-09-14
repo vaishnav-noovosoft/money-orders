@@ -21,7 +21,7 @@ const authenticate = (username, password) => {
                     if (authToken) {
                         localStorage.setItem('authToken', authToken);
                         const userRole = data.userRole;
-                        window.location.href = `/dashboard?role=${userRole}`;
+                        window.location.href = `/dashboard`;
                     } else console.error('Unexpected error!');
                 }
             });

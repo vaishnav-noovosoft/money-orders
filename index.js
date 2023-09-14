@@ -14,7 +14,6 @@ app.get("/api", (req
     res.send("Welcome to Money Orders API");
 });
 
-
 // Mount routes
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
