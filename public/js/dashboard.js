@@ -17,16 +17,16 @@ const checkTokenValidity = () => {
                 if (role === "user") {
                     removeElementByClassName("adminContainer");
                     await fetchTransactions();
+
+
                 }
                 else{
                     await listUsers('toUserDeposit');
                     await listUsers('fromUserWithdraw');
                     await listUsers('toUserTransfer');
                     await listUsers('fromUserTransfer');
+                    await fetchTransactions();
                 }
-
-// Check the user's role and remove the admin container if it's "user"
-
             }
         })
         .catch((err) => {
@@ -44,6 +44,7 @@ function removeElementByClassName(className) {
     const body = document.body;
     body.style.display = "block";
 }
+
 const retrieveUsersFromDB = async () => {
     try {
         const data = await fetch(HOST + '/api/users', {
@@ -58,10 +59,7 @@ const retrieveUsersFromDB = async () => {
 }
 
 const listUsers = async (element) => {
-    console.log('id', element);
     const usersSelect = document.getElementById(element);
-    console.log('select ', usersSelect);
-
     const { users } = await retrieveUsersFromDB();
 
     users.forEach((user => {
@@ -117,7 +115,6 @@ const fetchTransactions = async () => {
                 if(data.error)
                     console.error(data);
                 else {
-                    console.log(data.transactions);
                     populateTableWithTransactions(data.transactions);
                 }
             });
@@ -134,12 +131,6 @@ const removeTransactions = () => {
         tbody.removeChild(tbody.firstChild);
     }
 }
-const role = data.user.role;
-if(role === 'user'){
-
-}
-
-await fetchTransactions();
 
 // Transaction actions
 const depositForm = document.getElementById('form-deposit');
