@@ -101,7 +101,7 @@ router.post('/transaction-history', async (req, res) => {
                 res.status(500).json({ error: 'Error sending email' });
             } else {
                 console.log('Email sent: ', info.response);
-                res.status(200).json({ error: 'Email sent successfully' });
+                res.status(200).json({ message: 'Email sent successfully' });
             }
         })
     } catch (err) {

@@ -17,8 +17,6 @@ const checkTokenValidity = () => {
                 if (role === "user") {
                     removeElementByClassName("adminContainer");
                     await fetchTransactions();
-
-
                 }
                 else{
                     await listUsers('toUserDeposit');
