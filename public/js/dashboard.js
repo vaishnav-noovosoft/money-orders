@@ -43,6 +43,8 @@ function removeElementByClassName(className) {
     });
     const body = document.body;
     body.style.display = "block";
+    body.style.width= "80%";
+    body.style.margin= "auto";
 }
 
 const retrieveUsersFromDB = async () => {
