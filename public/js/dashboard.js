@@ -58,9 +58,6 @@ const checkTokenValidity = () => {
                     await listUsers('fromUserTransfer');
                     await fetchTransactions();
                 }
-
-// Check the user's role and remove the admin container if it's "user"
-
             }
         })
         .catch((err) => {
@@ -97,11 +94,11 @@ const retrieveUsersFromDB = async () => {
 }
 
 const listUsers = async (element) => {
-    console.log('id', element);
     const usersSelect = document.getElementById(element);
-    console.log('select ', usersSelect);
 
-    const {users} = await retrieveUsersFromDB();
+
+
+    const { users } = await retrieveUsersFromDB();
 
     users.forEach((user => {
         const option = document.createElement('option');
@@ -156,7 +153,6 @@ const fetchTransactions = async () => {
                 if (data.error)
                     console.error(data);
                 else {
-                    console.log(data.transactions);
                     populateTableWithTransactions(data.transactions);
                 }
             });
@@ -173,8 +169,6 @@ const removeTransactions = () => {
     }
 }
 
-
-await fetchTransactions();
 
 // Transaction actions
 const depositForm = document.getElementById('form-deposit');

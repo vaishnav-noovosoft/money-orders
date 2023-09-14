@@ -8,11 +8,21 @@ const authenticate = async (req, res, next)=> {
         return res.status(401).json({error: 'Invalid Authentication Format'});
     }
 
-    const user = await jwt.verify(token);
-    if (!user) return res.status(404).json({error: 'User Not Found'});
+    try {
+        const user = await jwt.verify(token);
+        if (!user) return res.status(404).json({error: 'User Not Found'});
 
-    req.user = user;
-    next();
+        req.user = user;
+        next();
+    } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+            // Token has expired, handle it here
+            return res.status(401).json({ error: 'Token expired' });
+        } else {
+            // Other JWT verification errors
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+    }
 }
 
 const authorize = (req, res, next)=> {
