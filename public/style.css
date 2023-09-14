@@ -99,6 +99,12 @@ select {
 }
 
 
-
+.center-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Optional for text alignment */
+}
 
 
