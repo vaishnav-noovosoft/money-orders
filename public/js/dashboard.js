@@ -201,7 +201,7 @@ checkTokenValidity();
                 headers: headers,
                 body: JSON.stringify({
                     "toUser": toUser,
-                    "amount": amount
+                    "amount": parseFloat(amount)
                 })
             })
                 .then((res) => res.json())
