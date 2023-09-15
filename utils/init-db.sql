@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     from_user INT REFERENCES users(user_id),
     to_user INT REFERENCES users(user_id),
     amount FLOAT,
-    date_created TIMESTAMP DEFAULT NOW()
+    date_created TIMESTAMP DEFAULT NOW(),
+    status VARCHAR(255)
 );
 
 

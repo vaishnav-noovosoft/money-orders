@@ -22,7 +22,7 @@ router.post('/transaction-history', async (req, res) => {
 
     try {
         const limit = req.query.limit;
-        if (!limit) return res.status(401).json({ error: 'Missing limit parameter' });
+        if (!limit) return res.status(400).json({ error: 'Missing limit parameter' });
 
         const latestTransactions = await retrieveTransactions(user, user.role, limit);
         if (!latestTransactions || latestTransactions.length === 0) {
