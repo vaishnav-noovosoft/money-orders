@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Create Email Table
 CREATE TABLE IF NOT EXISTS emails (
     id SERIAL PRIMARY KEY,
-    sender INT REFERENCES users(id),
-    receiver INT REFERENCES users(id),
+    sender INT REFERENCES users(user_id),
+    receiver INT REFERENCES users(user_id),
     status VARCHAR(255) DEFAULT 'pending',
     emailHTML TEXT,
     created_at TIMESTAMP DEFAULT NOW()
