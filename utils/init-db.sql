@@ -19,5 +19,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     date_created TIMESTAMP DEFAULT NOW()
 );
 
-
-
+-- Create Email Table
+CREATE TABLE IF NOT EXISTS emails (
+    id SERIAL PRIMARY KEY,
+    sender VARCHAR(255) NOT NULL,
+    receiver VARCHAR(255) NOT NULL,
+    status VARCHAR(255) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT NOW()
+)
