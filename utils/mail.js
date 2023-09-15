@@ -32,13 +32,14 @@ const sendEmail = async (user, emailHtml) => {
     }
 }
 
-const fetchOldestEmails = (limit = 10) => {
-
+const fetchOldestEmails = (client, limit = 10) => {
+    try {}
+    catch (err) {}
 }
 
-const sendEmails = (client) => {
+const sendEmails = (client, limit) => {
     try {
-
+        const mails = fetchOldestEmails(client, limit);
     }
     catch (err) {
         console.error('Error in sending emails process');
