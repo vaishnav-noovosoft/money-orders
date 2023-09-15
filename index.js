@@ -86,9 +86,12 @@ const startServer = async () => {
 
     if (process.env.APP === 'api') {
         apiServer();
-    } else {
+    } else if(process.env.APP === 'transactions') {
         console.log('Starting transaction processing..');
         await startTransactionProcessing();
+    } else if(process.env.APP === 'emails') {
+        console.log('Starting to send emails');
+        await startEmailSending();
     }
 };
 

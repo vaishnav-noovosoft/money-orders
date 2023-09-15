@@ -32,14 +32,31 @@ const sendEmail = async (user, emailHtml) => {
     }
 }
 
-const fetchOldestEmails = (client, limit = 10) => {
-    try {}
-    catch (err) {}
+const fetchOldestEmails = async (client, limit = 10) => {
+    try {
+        const query = 'SELECT *\n' +
+            'FROM emails\n' +
+            'WHERE status = \'pending\'\n' +
+            'ORDER BY created_at ASC\n' +
+            'LIMIT $1;';
+        const values = [limit];
+        return await client.query(query, values);
+    }
+    catch (err) {
+        throw err;
+    }
 }
 
-const sendEmails = (client, limit) => {
+const sendEmails = async (client, limit) => {
     try {
-        const mails = fetchOldestEmails(client, limit);
+        const mails = await fetchOldestEmails(client, limit);
+
+        if(!mails || mails.length === 0) {
+            console.log('No New Mails to Process..');
+            return;
+        }
+
+        console.log('mails: ', mails);
     }
     catch (err) {
         console.error('Error in sending emails process');
