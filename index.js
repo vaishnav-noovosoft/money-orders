@@ -64,11 +64,12 @@ const startTransactionProcessing = async () => {
 
 const startEmailSending = async () => {
     try {
+        const limit = 10;
         const client = pool.connect();
 
         const fetchAndSendOldestMails = async () => {
             console.log('Sending emails..');
-            await sendEmails(client);
+            await sendEmails(client, limit);
             console.log('Email sending exit.');
         }
 
