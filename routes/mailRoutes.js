@@ -94,9 +94,10 @@ router.post('/transaction-history', async (req, res) => {
         </html>
         `;
 
-        const adminId = getFirstAdmin().user_id;
+        const admin = await getFirstAdmin();
+        if(!admin.user_id) return res.status(400).json({ error: 'Admin user not present in user to send an email' });
 
-        await saveEmail({ sender: adminId, receiver: user.user_id, emailBodyHTML: emailHtml })
+        await saveEmail({ sender: admin.user_id, receiver: user.user_id, emailBodyHTML: emailHtml })
             .then((data) => {
                 if(data.error) {
                     console.error('Error sending email: ', data.error);
