@@ -15,8 +15,6 @@ const transporter = nodemailer.createTransport(mailhogTransport);
 router.use(authenticate);
 router.use(authorize);
 
-module.exports = router;
-
 router.post('/transaction-history', async (req, res) => {
     const user = req.user;
 
@@ -109,3 +107,5 @@ router.post('/transaction-history', async (req, res) => {
         return res.status(500).json({ error: err.message });
     }
 });
+
+module.exports = router;
