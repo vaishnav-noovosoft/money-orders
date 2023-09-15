@@ -68,11 +68,27 @@ const saveEmail = async ({ sender, receiver, emailBodyHTML = '' }) => {
 const listEmails = async (receiverUserId, limit= 10) => {
     try {
         const query = `
-            SELECT *
-            FROM emails
-            WHERE receiver = $1
-            ORDER BY created_at DESC
-            LIMIT $2;
+            WITH email_data AS (
+                SELECT
+                    u.email AS sender_email,
+                    emails.created_at AS created_at,
+                    emails.status AS email_status
+                FROM
+                    emails
+                        INNER JOIN
+                    users u ON emails.sender = u.user_id
+                WHERE
+                    emails.receiver = $1
+            )
+            SELECT
+                sender_email,
+                created_at,
+                email_status
+            FROM
+                email_data
+            ORDER BY
+                created_at DESC
+                LIMIT $2;
         `;
         const values = [receiverUserId, limit];
         const result = await db.query(query, values);

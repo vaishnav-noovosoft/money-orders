@@ -18,10 +18,13 @@ router.get('/', async (req, res) => {
     try {
         // Retrieve emails of user
         const result= await listEmails(user.user_id, limit);
+
+        //
+
         return res.status(200).json({ emails: result.emails });
     } catch (err) {
         console.error('Error retrieving emails: ', err);
-        return res.status(500).json({ error: '' })
+        return res.status(500).json({ error: 'Error retrieving emails' })
     }
 });
 
