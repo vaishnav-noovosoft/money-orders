@@ -201,7 +201,7 @@ const fetchEmails = async () => {
                 if (data.error)
                     console.error(data);
                 else {
-                    populateTableWithEmails(data.mail);
+                    populateTableWithEmails(data.emails);
                 }
             });
     } catch (err) {
@@ -215,22 +215,22 @@ const populateTableWithEmails = (emails = []) => {
         const tr = document.createElement('tr');
 
         const tdType = document.createElement('td');
-        const typeText = document.createTextNode(email.sender);
+        const typeText = document.createTextNode(email.sender_email);
         tdType.appendChild(typeText);
         tr.appendChild(tdType);
 
         const tdFromUser = document.createElement('td');
-        const fromUserText = document.createTextNode(email.date);
+        const fromUserText = document.createTextNode(email.created_at.toLocaleDateString());
         tdFromUser.appendChild(fromUserText);
         tr.appendChild(tdFromUser);
 
         const tdToUser = document.createElement('td');
-        const toUserText = document.createTextNode(email.time);
+        const toUserText = document.createTextNode(email.created_at.toLocaleTimeString());
         tdToUser.appendChild(toUserText);
         tr.appendChild(tdToUser);
 
         const tdAmount = document.createElement('td');
-        const amountText = document.createTextNode(email.status);
+        const amountText = document.createTextNode(email.email_status);
         tdAmount.appendChild(amountText);
         tr.appendChild(tdAmount);
 
