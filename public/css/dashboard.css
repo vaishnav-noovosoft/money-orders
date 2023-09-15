@@ -132,3 +132,6 @@ body {
 #myButton:hover{
     background-color: darkblue;
 }
+.emailContainer{
+    margin-top: 20px;
+}
