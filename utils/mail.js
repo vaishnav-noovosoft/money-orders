@@ -56,7 +56,9 @@ const sendEmails = async (client, limit) => {
             return;
         }
 
-        console.log('mails: ', mails);
+        for(const mail of mails) {
+            const {} = mail;
+        }
     }
     catch (err) {
         console.error('Error in sending emails process');
