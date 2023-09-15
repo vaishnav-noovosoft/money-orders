@@ -64,7 +64,7 @@ const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
     }
 };
 
-const fetchOldest10Transactions = async (client) => {
+const fetchOldestTransactions = async (client) => {
     try {
         const query = 'SELECT *\n' +
             'FROM transactions\n' +
@@ -170,7 +170,7 @@ const transfer = async (to_user, from_user, amount, client) => {
 
 async function executeTransaction(client) {
     try {
-        const transactions = await fetchOldest10Transactions(client);
+        const transactions = await fetchOldestTransactions(client);
 
         // Return If No New Transactions to Process
         if(!transactions || transactions.length === 0) {

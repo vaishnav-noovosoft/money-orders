@@ -4,6 +4,7 @@ const router = express.Router();
 const {authorize, authenticate} = require("./middlewares");
 const {retrieveTransactions} = require("../utils/transaction");
 const {saveEmail, listEmails} = require('../utils/mail');
+const {getFirstAdmin} = require("../utils/users");
 
 router.use(authenticate);
 router.use(authorize);
@@ -93,8 +94,10 @@ router.post('/transaction-history', async (req, res) => {
         </html>
         `;
 
+        const admin = await getFirstAdmin();
+        if(!admin.user_id) return res.status(400).json({ error: 'Admin user not present in user to send an email' });
 
-        await saveEmail({ sender: process.env.ADMIN_EMAIL, receiver: user.email, emailBodyHTML: emailHtml })
+        await saveEmail({ sender: admin.user_id, receiver: user.user_id, emailBodyHTML: emailHtml })
             .then((data) => {
                 if(data.error) {
                     console.error('Error sending email: ', data.error);

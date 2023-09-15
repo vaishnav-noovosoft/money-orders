@@ -32,7 +32,21 @@ const sendEmail = async (user, emailHtml) => {
     }
 }
 
-const saveEmail = async ({ sender= '', receiver = '', emailBodyHTML = '' }) => {
+const fetchOldestEmails = (limit = 10) => {
+
+}
+
+const sendEmails = (client) => {
+    try {
+
+    }
+    catch (err) {
+        console.error('Error in sending emails process');
+        throw err;
+    }
+}
+
+const saveEmail = async ({ sender, receiver, emailBodyHTML = '' }) => {
     try {
         const query = `
             INSERT INTO emails (sender, receiver, emailhtml)
@@ -70,7 +84,7 @@ const listEmails = async (receiverUserId, limit= 10) => {
 }
 
 module.exports = {
-    sendEmail,
     saveEmail,
-    listEmails
+    listEmails,
+    sendEmails
 }
