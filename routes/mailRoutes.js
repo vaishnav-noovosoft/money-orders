@@ -1,19 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
-const smtpTransport = require('nodemailer-smtp-transport');
-const {checkEmail, authorize, authenticate} = require("./middlewares");
+
+const {authorize, authenticate} = require("./middlewares");
 const {retrieveTransactions} = require("../utils/transaction");
-
-const mailhogTransport = smtpTransport({
-    host: 'localhost',
-    port: 1025,
-});
-
-const transporter = nodemailer.createTransport(mailhogTransport);
+const {saveEmail, listEmails} = require('../utils/mail');
 
 router.use(authenticate);
 router.use(authorize);
+
+router.get('/', async (req, res) => {
+    const user = req.user;
+    const limit = req.query.limit;
+
+    if(!limit) return res.status(400).json({ error: 'Invalid limit parameter' });
+
+    try {
+        // Retrieve emails of user
+        const result= await listEmails(user.user_id, limit);
+        return res.status(200).json({ emails: result.emails });
+    } catch (err) {
+        console.error('Error retrieving emails: ', err);
+        return res.status(500).json({ error: '' })
+    }
+});
 
 router.post('/transaction-history', async (req, res) => {
     const user = req.user;
@@ -51,7 +60,6 @@ router.post('/transaction-history', async (req, res) => {
         </table>
         `;
 
-
         // Create the HTML content for the email
         const emailHtml = `
         <html lang="en">
@@ -86,22 +94,16 @@ router.post('/transaction-history', async (req, res) => {
         `;
 
 
-        const mailOptions = {
-            from: process.env.ADMIN_EMAIL,
-            to: user.email,
-            subject: `Transaction History of ${user.username}`,
-            html: emailHtml
-        }
-
-        await transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error('Error sending email: ', err);
-                res.status(500).json({ error: 'Error sending email' });
-            } else {
-                console.log('Email sent: ', info.response);
-                res.status(200).json({ message: 'Email sent successfully' });
-            }
-        })
+        await saveEmail({ sender: process.env.ADMIN_EMAIL, receiver: user.email, emailBodyHTML: emailHtml })
+            .then((data) => {
+                if(data.error) {
+                    console.error('Error sending email: ', data.error);
+                    res.status(500).json({ error: 'Error sending email' });
+                }
+                else {
+                    res.status(200).json({ message: data.message });
+                }
+            });
     } catch (err) {
         console.error('Error sending email: ', err);
         return res.status(500).json({ error: err.message });
