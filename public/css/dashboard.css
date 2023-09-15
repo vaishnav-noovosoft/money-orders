@@ -1,3 +1,4 @@
+
 :root {
     --darkYellow: #F6BE00;
     --blue: #1e90ff;
@@ -11,39 +12,48 @@ body {
     color: white;
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
+    padding-top: 20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
 
 .container {
-    padding: 20px;
+   padding-inline: 20px;
 }
 
 .transaction-history {
     background-color: var(--darkYellow);
-    padding: 20px;
+    padding: 30px;
     border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .transaction-history table {
     width: 100%;
     border-collapse: collapse;
+    background-color: white;
+    color: black;
+
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+
 }
 
 .transaction-history table, .transaction-history th, .transaction-history td {
-    border: 1px solid white;
+    border: 1px solid var(--black);
+
+
 }
 
 .transaction-history th, .transaction-history td {
     padding: 10px;
-    text-align: left;
+    text-align: center;
 }
 
 .transaction-form {
     background-color: var(--darkYellow);
     padding: 20px;
     border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .deposit{
@@ -70,6 +80,7 @@ body {
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
     border: solid 2px #007acc;
+
 }
 
 .deposit-form, .withdraw-form {
@@ -102,4 +113,22 @@ body {
 
 .transfer {
     margin-top: 1rem;
+}
+#emailButton{
+    float: right;
+    margin-top: 55px;
+    margin-right: 40px;
+}
+#myButton{
+    display: block;
+
+    background-color: #007acc;
+    color: white;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 1px white;
+
+}
+#myButton:hover{
+    background-color: darkblue;
 }

@@ -4,7 +4,7 @@
 //     e.preventDefault();
 //     console.log("dfdf");
 //     const data={
-//         "toUser": document.getElementById('fromUserDeposit').value,
+//         "toUser": document.getElementById('toUserDeposit').value,
 //         "amount": document.getElementById('amountDeposit').value,
 //         "role":"admin"
 //     }
@@ -20,4 +20,13 @@
 //         console.log('Deposit Successful')
 //     })
 // });
+// document.getElementById('form-withdraw').addEventListener('submit',async (e)=>{
+//     e.preventDefault();
+//     console.log("dsdf");
+//     const data={
+//         "fromUser": document.getElementById("fromUserDeposit").value,
+//         "amount": document.getElementById('amountDeposit').value,
+//         "role":"admin"
+//     }
+// })
 //
