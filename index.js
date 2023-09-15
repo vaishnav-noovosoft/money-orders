@@ -1,4 +1,6 @@
 const dotenv = require('dotenv');
+const {executeTransaction} = require("./utils/transaction");
+const pool = require("./db/postgresPool");
 dotenv.config();
 
 const apiServer = () => {
@@ -37,33 +39,40 @@ const apiServer = () => {
     });
 }
 
+const startTransactionProcessing = async () => {
+    try {
+        const client = await pool.connect();
 
+        // Implement the function to fetch and process transactions here.
+        const fetchAndProcessOldestTransactions = async () => {
+            console.log('Fetching and processing transactions...');
 
-const startTransactionProcessing = () => {
-    // Implement the function to fetch and process transactions here.
-    const fetchAndProcessOldestTransactions = () => {
-        // Implement code to fetch the oldest 10 transactions from the database
-        // and perform operations on user balances here.
-        // You'll need to use database queries to fetch the transactions and update user balances.
-        // Pseudocode:
-        // 1. Fetch the oldest 10 transactions.
-        // 2. For each transaction, update the corresponding user's balance.
-        // 3. Repeat this process every 10 seconds.
-        console.log('Fetching and processing transactions...');
-    };
+            await executeTransaction(client);
+            console.log('Transaction Exit')
+        };
 
-    // Call the function initially to start the process.
-    fetchAndProcessOldestTransactions();
+        // Call the function initially to start the process.
+        await fetchAndProcessOldestTransactions();
 
-    // Use setInterval to repeat the process every 10 seconds.
-    setInterval(fetchAndProcessOldestTransactions, 10000); // 10000 milliseconds = 10 seconds
+        // Use setInterval to repeat the process every 10 seconds.
+        setInterval(fetchAndProcessOldestTransactions, 10000); // 10000 milliseconds = 10 seconds
+    }
+    catch (err) {
+        console.error('Error: '. err);
+    }
 };
 
-console.log(process.env.APP);
+const startServer = async () => {
+    console.log(process.env.APP);
 
-if(process.env.APP === 'api') {
-    apiServer();
-} else {
-    console.log('Starting transaction processing..');
-    startTransactionProcessing();
-}
+    if (process.env.APP === 'api') {
+        apiServer();
+    } else {
+        console.log('Starting transaction processing..');
+        await startTransactionProcessing();
+    }
+};
+
+startServer().catch((error) => {
+    console.error('Error starting the server:', error);
+});

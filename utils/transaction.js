@@ -1,5 +1,6 @@
 const db = require("../db/postgres");
 const pool = require("../db/postgresPool");
+const {getUser} = require("./users");
 
 const depositAmount = async (userId, amount) => {
     const depositQuery = 'INSERT INTO transactions (type, to_user, amount) VALUES ($1, $2, $3) RETURNING *';
@@ -63,84 +64,162 @@ const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
     }
 };
 
-// Middleware to fetch the oldest 10 transactions
-async function fetch1OldestTransactions(req, res, next) {
+const fetchOldest10Transactions = async (client) => {
     try {
-        // Fetch the oldest 10 transactions from the database
-        const query = `
-          SELECT *
-          FROM transactions
-          ORDER BY date_created ASC
-          LIMIT 10;
-        `;
-
-        const { rows } = await pool.query(query);
-
-        res.locals.oldestTransactions = rows;
-        next();
-    } catch (error) {
-        next(error);
-    }
-}
-
-// Function to fetch the oldest 10 transactions
-async function fetchOldestTransactions() {
-    try {
-        // Fetch the oldest 10 transactions from the database
-        const query = `
-          SELECT *
-          FROM transactions
-          ORDER BY timestamp ASC
-          LIMIT 10;
-        `;
-
-        const { rows } = await pool.query(query);
-
-        return rows;
-    } catch (error) {
-        throw error;
-    }
-}
-
-// Function to fetch the next 10 transactions
-async function fetchNextTransactions(lastOldestTimestamp) {
-    try {
-        // Fetch the next 10 transactions after the provided timestamp
-        const query = `
-          SELECT *
-          FROM transactions
-          WHERE timestamp > $1
-          ORDER BY timestamp ASC
-          LIMIT 10;
-        `;
-
-        const { rows } = await pool.query(query, [lastOldestTimestamp]);
-
-        return rows;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function executeTransaction() {
-    const client = await pool.connect(); // Get a client from the pool
-
-    try {
-        // Begin the transaction
-        await client.query('BEGIN');
-
-        // Perform your transaction operations using the client
-        // For example, you can execute SQL statements here
-
-        // If the transaction is successful, commit it
-        await client.query('COMMIT');
+        const query = 'SELECT *\n' +
+            'FROM transactions\n' +
+            'WHERE status = \'pending\'\n' +
+            'ORDER BY date_created ASC\n' +
+            'LIMIT 10;';
+        const result = await client.query(query);
+        return result.rows;
     } catch (err) {
-        // If an error occurs, rollback the transaction
-        await client.query('ROLLBACK');
-        throw err; // Handle the error or propagate it
-    } finally {
+        console.error('Error while retrieving transactions', err);
+        throw err;
+    }
+}
+
+const checkBalance = async (user_id, transactionAmount, client) => {
+    try {
+        // Check if Transaction Amount can be deducted from User Balance
+        const query = `
+          SELECT balance FROM users WHERE user_id = $1;
+        `;
+        const values = [user_id];
+        const result = await client.query(query, values);
+        const balance = result.rows[0].balance;
+
+        return balance > transactionAmount;
+    } catch (err) {
+        console.error('Error while checking user amount: ', err);
+        return false;
+    }
+}
+
+const updateTransactionStatus = async (transaction_id, status = '', client) => {
+    try {
+        const query = `
+          UPDATE transactions
+          SET status = $1
+          WHERE transaction_id = $2
+          RETURNING *;
+        `;
+        const values = [status, transaction_id];
+        const result = await client.query(query, values);
+
+        return result.rows.length === 0;
+    } catch (err) {
+        console.error('Error while updating transaction status: ', err);
+        return false;
+    }
+}
+
+const deposit = async (to_user, amount, client) => {
+    try {
+        // Update user balance
+        const updateUserBalanceQuery = `
+                  UPDATE users
+                  SET balance = balance + $1
+                  WHERE user_id = $2;
+                `;
+        const updateUserBalanceValues = [amount, to_user];
+        await client.query(updateUserBalanceQuery, updateUserBalanceValues);
+    } catch (err) {
+        throw err;
+    }
+}
+
+const withdraw = async (from_user, amount, client) => {
+    try {
+        // Update user balance
+        const updateUserBalanceQuery = `
+                  UPDATE users
+                  SET balance = balance - $1
+                  WHERE user_id = $2;
+                `;
+        const updateUserBalanceValues = [amount, from_user];
+        await client.query(updateUserBalanceQuery, updateUserBalanceValues);
+    } catch (err) {
+        throw err;
+    }
+}
+
+const transfer = async (to_user, from_user, amount, client) => {
+    try {
+        // Update from_user balance
+        const updateFromUserBalanceQuery = `
+                  UPDATE users
+                  SET balance = balance - $1
+                  WHERE user_id = $2;
+                `;
+        const updateFromUserBalanceValues = [amount, from_user];
+        await client.query(updateFromUserBalanceQuery, updateFromUserBalanceValues);
+
+        // Update balance of to_user
+        const updateToUserBalanceQuery = `
+                  UPDATE users
+                  SET balance = balance + $1
+                  WHERE user_id = $2;
+                `;
+        const updateToUserBalanceValues = [amount, to_user];
+        await client.query(updateToUserBalanceQuery, updateToUserBalanceValues);
+    } catch (err) {
+        throw err;
+    }
+}
+
+async function executeTransaction(client) {
+    try {
+        const transactions = await fetchOldest10Transactions(client);
+
+        // Return If No New Transactions to Process
+        if(!transactions || transactions.length === 0) {
+            console.log('No New Transactions to Process..');
+            return;
+        }
+
+        for (const transaction of transactions) {
+            const { type, from_user, to_user, amount } = transaction;
+
+            if (type === 'deposit') {
+
+                await updateTransactionStatus(transaction.transaction_id, 'in-process', client);
+                await deposit(to_user, amount, client);
+                await updateTransactionStatus(transaction.transaction_id, 'complete', client);
+
+            } else if (type === 'withdraw') {
+                // Check if user has sufficient balance
+                const isSufficientBalance = await checkBalance(from_user, amount, client);
+                if(!isSufficientBalance) {
+                    // Invalid Transaction
+                    await updateTransactionStatus(transaction.transaction_id, 'invalid', client);
+                    continue;
+                }
+
+                await withdraw(from_user, amount, client);
+                await updateTransactionStatus(transaction.transaction_id, 'complete', client);
+            } else {
+                // Transfer Transaction
+                await updateTransactionStatus(transaction.transaction_id, 'in-process', client);
+
+                // Check if user has sufficient balance
+                const isSufficientBalance = await checkBalance(from_user, amount, client);
+                if(!isSufficientBalance) {
+                    // Invalid Transaction
+                    await updateTransactionStatus(transaction.transaction_id, 'invalid', client);
+                    continue;
+                }
+
+                await transfer(to_user, from_user, amount, client);
+                await updateTransactionStatus(transaction.transaction_id, 'complete', client);
+            }
+        }
+
         // Release the client back to the pool
-        client.release();
+        // client.release();
+    } catch (err) {
+        console.error('Error while completing transaction: ', err);
+        throw err;
     }
 }
 
@@ -149,7 +228,6 @@ module.exports = {
     withdrawAmount,
     transferAmount,
     retrieveTransactions,
-    fetch1OldestTransactions,
-    fetchNextTransactions
+    executeTransaction
 }
 

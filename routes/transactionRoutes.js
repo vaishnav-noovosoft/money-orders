@@ -74,9 +74,5 @@ router.post('/', adminOnly, async (req, res) => {
     }
 });
 
-router.get('/fetch10', fetch1OldestTransactions, async (err, req, res) => {
-
-});
-
 module.exports = router;
 
