@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 const {executeTransaction} = require("./utils/transaction");
 const pool = require("./db/postgresPool");
+const {sendEmails} = require("./utils/mail");
 dotenv.config();
 
 const apiServer = () => {
@@ -43,7 +44,6 @@ const startTransactionProcessing = async () => {
     try {
         const client = await pool.connect();
 
-        // Implement the function to fetch and process transactions here.
         const fetchAndProcessOldestTransactions = async () => {
             console.log('Fetching and processing transactions...');
 
@@ -58,9 +58,27 @@ const startTransactionProcessing = async () => {
         setInterval(fetchAndProcessOldestTransactions, 10000); // 10000 milliseconds = 10 seconds
     }
     catch (err) {
-        console.error('Error: '. err);
+        console.error('Error processing transactions: ', err);
     }
 };
+
+const startEmailSending = async () => {
+    try {
+        const client = pool.connect();
+
+        const fetchAndSendOldestMails = async () => {
+            console.log('Sending emails..');
+            await sendEmails(client);
+            console.log('Email sending exit.');
+        }
+
+        await fetchAndSendOldestMails();
+        setInterval(fetchAndSendOldestMails, 10000);
+    }
+    catch (err) {
+        console.error('Error sending emails: ', err);
+    }
+}
 
 const startServer = async () => {
     console.log(process.env.APP);
