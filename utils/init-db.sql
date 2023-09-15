@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Create Email Table
 CREATE TABLE IF NOT EXISTS emails (
     id SERIAL PRIMARY KEY,
-    sender VARCHAR(255) NOT NULL,
-    receiver VARCHAR(255) NOT NULL,
+    sender INT REFERENCES users(id),
+    receiver INT REFERENCES users(id),
     status VARCHAR(255) DEFAULT 'pending',
     emailHTML TEXT,
     created_at TIMESTAMP DEFAULT NOW()
-)
+);
