@@ -25,5 +25,6 @@ CREATE TABLE IF NOT EXISTS emails (
     sender VARCHAR(255) NOT NULL,
     receiver VARCHAR(255) NOT NULL,
     status VARCHAR(255) DEFAULT 'pending',
+    emailHTML TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 )
