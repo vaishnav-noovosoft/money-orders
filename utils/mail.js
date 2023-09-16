@@ -95,7 +95,7 @@ const listEmails = async (receiverUserId, limit= 10) => {
                 FROM
                     emails
                         INNER JOIN
-                    users u ON emails.sender = u.user_id
+                    users u ON emails.sender = u.id
                 WHERE
                     emails.receiver = $1
             )

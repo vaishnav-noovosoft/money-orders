@@ -1,25 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const {
-    depositAmount,
-    withdrawAmount,
-    transferAmount,
+    depositTransaction,
+    withdrawTransaction,
+    transferTransaction,
     retrieveTransactions,
 } = require("../utils/transaction");
 const {getUser} = require('../utils/users');
-const {authenticate, authorize, adminOnly} = require("./middlewares");
+const {authenticate, adminOnly} = require("./middlewares");
 
 router.use(authenticate);
-router.use(authorize);
 
 router.get('/', async (req, res) => {
-    const userRole = req.user.role;
     const limit = req.query.limit;
 
     if (!limit) return res.status(400).json({error: 'Missing limit parameter'});
 
     try {
-        const transactions = await retrieveTransactions(req.user, userRole, limit);
+        const transactions = await retrieveTransactions(req.user, limit);
         return res.status(200).json({transactions});
     } catch (err) {
         console.error('Error retrieving transactions', err);
@@ -43,8 +41,8 @@ router.post('/', adminOnly, async (req, res) => {
             const user = await getUser(toUser);
             if (!user) return res.status(404).json({error: 'User not found'});
 
-            const depositTransaction = await depositAmount(user.user_id, amount);
-            return res.status(201).json({"transaction": depositTransaction});
+            const depositTransactionResult = await depositTransaction(user.id, amount);
+            return res.status(201).json({"transaction": depositTransactionResult});
         } else if (type === 'withdraw') {
             const {fromUser, amount} = req.body;
             if (!fromUser || !amount) return res.status(400).json({error: 'Missing fromUser or amount'});
@@ -52,10 +50,10 @@ router.post('/', adminOnly, async (req, res) => {
             const user = await getUser(fromUser);
             if (!user) return res.status(404).json({error: 'User not found'});
 
-            const withdrawTransaction = await withdrawAmount(user.user_id, amount);
+            const withdrawTransactionResult = await withdrawTransaction(user.id, amount);
             if (!withdrawTransaction) return res.status(500).json({error: 'Error in creating transaction'});
 
-            return res.status(201).json({"transaction": withdrawTransaction});
+            return res.status(201).json({"transaction": withdrawTransactionResult});
         } else if (type === 'transfer') {
             const {fromUser, toUser, amount} = req.body;
             if (!fromUser || !toUser || !amount) return res.status(401).json({error: 'Missing required data'});
@@ -68,16 +66,16 @@ router.post('/', adminOnly, async (req, res) => {
             const toUserObject = await getUser(toUser);
             if (!toUserObject) return res.status(404).json({error: 'toUser not found'});
 
-            const transferTransaction = await transferAmount(fromUserObject.user_id, toUserObject.user_id, amount);
+            const transferTransactionResult = await transferTransaction(fromUserObject.id, toUserObject.id, amount);
             if (!transferTransaction) return res.status(500).json({error: 'Error while creating transaction'});
 
-            return res.status(201).json({"transaction": transferTransaction});
+            return res.status(201).json({"transaction": transferTransactionResult});
         } else {
             return res.status(401).json({error: "Missing required parameter 'type'"});
         }
     } catch (err) {
-        console.log("err", err);
-        res.status(500).json({error: err.message});
+        console.error('Error creating transaction: ', err);
+        res.status(500).json({error: 'Error making transaction'});
     }
 });
 

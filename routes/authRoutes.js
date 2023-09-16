@@ -4,7 +4,7 @@ const bcrypt = require('../utils/bcrypt');
 const { getUser } = require('../utils/users');
 const jwt = require('../utils/jwt');
 const path = require('path');
-const {verify} = require("../utils/jwt");
+const { authenticate } = require("./middlewares");
 
 router.get('/login', async (req, res) => {
    const filePath =  path.join(__dirname, '..', 'templates', 'login.html');
@@ -33,29 +33,8 @@ router.post('/login', async (req, res) => {
     }
 });
 
-const verifyAuthToken = async (req, res, next) => {
-    try {
-        const token = req.headers.authorization;
 
-        if(!token) return res.status(401).json({ error: 'Missing authorization token' });
-        const [bearer, authToken] = token.split(' ');
-
-        if(bearer !== 'Bearer' || !authToken) return res.status(401).json({ error: 'Invalid auth token' });
-
-        const user = await verify(authToken);
-        if(!user) return res.status(404).json({ error: 'User not found' });
-
-        req.user = user;
-        next();
-    }
-    catch (err) {
-        console.error('Error verifying user: ', err);
-        return res.status(403).json({ error: err.message });
-    }
-
-}
-
-router.get('/verify-token', verifyAuthToken, async (req, res) => {
+router.get('/verify-token', authenticate, async (req, res) => {
     return res.status(200).json({ message: 'ok', user:  { role: req.user.role }});
 });
 

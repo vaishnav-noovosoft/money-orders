@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt');
-const db = require('../db/postgres')
 
 async function getHash(plainText) {
     try {

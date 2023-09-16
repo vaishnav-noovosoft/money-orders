@@ -1,14 +1,12 @@
-import {getHeader, HOST} from './clientConfig.js';
+import { getHeader, HOST } from './clientConfig.js';
 
-// Define the request headers, including the Authorization header
-const headers = getHeader();
 const emailButton = document.getElementById('emailButton')
 const sendEmailButton = () => {
     const limit = 15;
     try {
         fetch(HOST + `/api/mail/transaction-history?limit=${limit}`, {
             method: "POST",
-            headers: headers
+            headers: getHeader()
         })
             .then((res) => {
                 return res.json();
@@ -35,7 +33,7 @@ emailButton.addEventListener("click", sendEmailButton);
 const checkTokenValidity = () => {
     fetch(HOST + '/api/auth/verify-token', {
         method: "GET",
-        headers: headers
+        headers: getHeader()
     })
         .then((res) => res.json())
         .then(async data => {
@@ -93,7 +91,7 @@ const retrieveUsersFromDB = async () => {
     try {
         const data = await fetch(HOST + '/api/users', {
             method: 'GET',
-            headers: headers,
+            headers: getHeader(),
         });
 
         return await data.json();
@@ -131,12 +129,12 @@ const populateTableWithTransactions = (transactions = []) => {
         tr.appendChild(tdType);
 
         const tdFromUser = document.createElement('td');
-        const fromUserText = document.createTextNode(transaction.from_username);
+        const fromUserText = document.createTextNode(transaction.from_username || '-');
         tdFromUser.appendChild(fromUserText);
         tr.appendChild(tdFromUser);
 
         const tdToUser = document.createElement('td');
-        const toUserText = document.createTextNode(transaction.to_username);
+        const toUserText = document.createTextNode(transaction.to_username || '-');
         tdToUser.appendChild(toUserText);
         tr.appendChild(tdToUser);
 
@@ -146,13 +144,11 @@ const populateTableWithTransactions = (transactions = []) => {
         tr.appendChild(tdAmount);
 
         const tdStatus = document.createElement('td');
-        const statusText = document.createTextNode(transaction.status);
+        const statusText = document.createTextNode(transaction.status || '-');
         tdStatus.appendChild(statusText);
         tr.appendChild(tdStatus);
 
         tbody.appendChild(tr);
-
-
     });
 }
 
@@ -161,7 +157,7 @@ const fetchTransactions = async () => {
     try {
         fetch(HOST + `/api/transactions?limit=${limit}`, {
             method: 'GET',
-            headers: headers
+            headers: getHeader()
         })
             .then((res) => res.json())
             .then(data => {
@@ -183,13 +179,14 @@ const removeTransactions = () => {
         tbody.removeChild(tbody.firstChild);
     }
 }
-//Emails
+
+// Fetch Emails
 const fetchEmails = async () => {
     const limit = 10;
     try {
         fetch(HOST + `/api/mail?limit=${limit}`, {
             method: 'GET',
-            headers: headers
+            headers: getHeader()
         })
             .then((res) => res.json())
             .then(data => {
@@ -249,7 +246,7 @@ depositForm.addEventListener('submit', (event) => {
     try {
         fetch(HOST + `/api/transactions?type=deposit`, {
             method: 'POST',
-            headers: headers,
+            headers: getHeader(),
             body: JSON.stringify({
                 "toUser": toUser,
                 "amount": parseFloat(amount)
@@ -277,7 +274,7 @@ withdrawForm.addEventListener('submit', (event) => {
     try {
         fetch(HOST + '/api/transactions?type=withdraw', {
             method: 'POST',
-            headers: headers,
+            headers: getHeader(),
             body: JSON.stringify({
                 "fromUser": fromUser,
                 "amount": amount
@@ -313,7 +310,7 @@ transferForm.addEventListener('submit', (event) => {
     try {
         fetch(HOST + '/api/transactions?type=transfer', {
             method: 'POST',
-            headers: headers,
+            headers: getHeader(),
             body: JSON.stringify({
                 "fromUser": fromUser,
                 "toUser": toUser,

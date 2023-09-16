@@ -17,24 +17,7 @@ const getUser = async (username) => {
     }
 }
 
-const getFirstAdmin = async () => {
-    try {
-        const role = 'admin';
-        const query = 'SELECT id FROM users WHERE role = $1';
-        const values = [role];
-        const result = await db.query(query, values);
-        if(result.rows.length === 0) {
-            return null;
-        }
-
-        return result.rows[0];
-    } catch (err) {
-        console.error('Error retrieving user: ', err);
-        throw err;
-    }
-}
 
 module.exports = {
-    getUser,
-    getFirstAdmin
+    getUser
 }
