@@ -3,7 +3,7 @@ const jwt=require('jsonwebtoken');
 
 const getUser = async (username) => {
     try {
-        const query = 'SELECT user_id, username, password, role, email FROM users WHERE username = $1';
+        const query = 'SELECT id, username, password, role, email FROM users WHERE username = $1';
         const values = [username];
         const result = await db.query(query, values);
         if(result.rows.length === 0) {
@@ -20,7 +20,7 @@ const getUser = async (username) => {
 const getFirstAdmin = async () => {
     try {
         const role = 'admin';
-        const query = 'SELECT user_id FROM users WHERE role = $1';
+        const query = 'SELECT id FROM users WHERE role = $1';
         const values = [role];
         const result = await db.query(query, values);
         if(result.rows.length === 0) {

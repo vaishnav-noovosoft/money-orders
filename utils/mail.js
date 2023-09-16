@@ -73,7 +73,7 @@ const saveEmail = async ({ sender, receiver, emailBodyHTML = '' }) => {
             VALUES ($1, $2, $3)
             RETURNING *;
         `;
-        const values = [sender, receiver, emailBodyHTML];
+        const values= [sender, receiver, emailBodyHTML];
         const result = await db.query(query, values);
 
         if(result.rows.length === 0) return { 'error': 'Error sending mail' };

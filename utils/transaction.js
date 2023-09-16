@@ -12,6 +12,7 @@ const depositAmount = async (userId, amount) => {
     }
     return result.rows[0];
 };
+
 const withdrawAmount = async (userId, amount) => {
     const withdrawQuery = 'INSERT INTO transactions (type, from_user, amount) values ($1, $2, $3) RETURNING *';
     const withdrawValues = ['withdraw', userId, amount];
@@ -23,14 +24,28 @@ const withdrawAmount = async (userId, amount) => {
     return result.rows[0];
 }
 const transferAmount = async (fromUserId, toUserId, amount) => {
-    const transferMoneyQuery = 'INSERT INTO transactions (type, from_user, to_user, amount) values ($1, $2, $3, $4) RETURNING *';
+    const client = await pool.connect();
+
+    // Store new transfer transaction
+    const transferMoneyQuery = 'INSERT INTO transactions (type, from_user, to_user, amount) VALUES ($1, $2, $3, $4) RETURNING *';
     const transferMoneyValues = ['transfer', fromUserId, toUserId, amount];
-    const result = await db.query(transferMoneyQuery, transferMoneyValues);
+    const result = await client.query(transferMoneyQuery, transferMoneyValues);
 
     if (result.rows.length === 0) {
-        throw new Error('Error creating transaction');
+        throw 'Error creating transaction';
     }
-    return result.rows[0];
+    const transaction = result.rows[0];
+
+    // Add transaction for batch processing
+    const processQuery = 'INSERT INTO processes (transaction_id) VALUES ($1) RETURNING *';
+    const processValues = [transaction.id];
+    const processResult = await client.query(processQuery, processValues);
+    if(processResult.rows.length === 0) {
+        console.error('Error adding transaction in processes');
+    }
+
+    client.release();
+    return transaction;
 }
 
 const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
@@ -48,8 +63,8 @@ const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
     } else if (userRole === 'user') {
         const query = 'SELECT t.*, u.username AS from_username, v.username AS to_username\n' +
             'FROM transactions t\n' +
-            'LEFT JOIN users u ON t.from_user = u.user_id\n' +
-            'LEFT JOIN users v ON t.to_user = v.user_id\n' +
+            'LEFT JOIN users u ON t.from_user = u.id\n' +
+            'LEFT JOIN users v ON t.to_user = v.id\n' +
             'WHERE (t."type" = \'deposit\' AND v.username = $1)\n' +
             '   OR (t."type" = \'withdraw\' AND u.username = $1)\n' +
             '   OR (t."type" = \'transfer\' AND (u.username = $1 OR v.username = $1))\n' +
@@ -83,7 +98,7 @@ const checkBalance = async (user_id, transactionAmount, client) => {
     try {
         // Check if Transaction Amount can be deducted from User Balance
         const query = `
-          SELECT balance FROM users WHERE user_id = $1;
+          SELECT balance FROM users WHERE id = $1;
         `;
         const values = [user_id];
         const result = await client.query(query, values);
@@ -120,7 +135,7 @@ const deposit = async (to_user, amount, client) => {
         const updateUserBalanceQuery = `
                   UPDATE users
                   SET balance = balance + $1
-                  WHERE user_id = $2;
+                  WHERE id = $2;
                 `;
         const updateUserBalanceValues = [amount, to_user];
         await client.query(updateUserBalanceQuery, updateUserBalanceValues);
@@ -135,7 +150,7 @@ const withdraw = async (from_user, amount, client) => {
         const updateUserBalanceQuery = `
                   UPDATE users
                   SET balance = balance - $1
-                  WHERE user_id = $2;
+                  WHERE id = $2;
                 `;
         const updateUserBalanceValues = [amount, from_user];
         await client.query(updateUserBalanceQuery, updateUserBalanceValues);
@@ -150,7 +165,7 @@ const transfer = async (to_user, from_user, amount, client) => {
         const updateFromUserBalanceQuery = `
                   UPDATE users
                   SET balance = balance - $1
-                  WHERE user_id = $2;
+                  WHERE id = $2;
                 `;
         const updateFromUserBalanceValues = [amount, from_user];
         await client.query(updateFromUserBalanceQuery, updateFromUserBalanceValues);
@@ -159,7 +174,7 @@ const transfer = async (to_user, from_user, amount, client) => {
         const updateToUserBalanceQuery = `
                   UPDATE users
                   SET balance = balance + $1
-                  WHERE user_id = $2;
+                  WHERE id = $2;
                 `;
         const updateToUserBalanceValues = [amount, to_user];
         await client.query(updateToUserBalanceQuery, updateToUserBalanceValues);

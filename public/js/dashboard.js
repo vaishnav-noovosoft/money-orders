@@ -28,13 +28,8 @@ const sendEmailButton = () => {
         console.error('Error while sending Email', err);
     }
 }
+
 emailButton.addEventListener("click", sendEmailButton);
-
-
-// function changeInnerHTML() {
-//     const myButton = document.getElementById("myButton");
-//     myButton.innerHTML = "Send Email Again!";
-// }
 
 
 const checkTokenValidity = () => {

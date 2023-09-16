@@ -11,7 +11,7 @@ router.get('/login', async (req, res) => {
    return res.sendFile(filePath);
 });
 
-// Login user
+
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -34,18 +34,25 @@ router.post('/login', async (req, res) => {
 });
 
 const verifyAuthToken = async (req, res, next) => {
-    const token = req.headers.authorization;
+    try {
+        const token = req.headers.authorization;
 
-    if(!token) return res.status(401).json({ error: 'Missing authorization token' });
-    const [bearer, authToken] = token.split(' ');
+        if(!token) return res.status(401).json({ error: 'Missing authorization token' });
+        const [bearer, authToken] = token.split(' ');
 
-    if(bearer !== 'Bearer' || !authToken) return res.status(401).json({ error: 'Invalid auth token' });
+        if(bearer !== 'Bearer' || !authToken) return res.status(401).json({ error: 'Invalid auth token' });
 
-    const user = await verify(authToken);
-    if(!user) return res.status(404).json({ error: 'User not found' });
+        const user = await verify(authToken);
+        if(!user) return res.status(404).json({ error: 'User not found' });
 
-    req.user = user;
-    next();
+        req.user = user;
+        next();
+    }
+    catch (err) {
+        console.error('Error verifying user: ', err);
+        return res.status(403).json({ error: err.message });
+    }
+
 }
 
 router.get('/verify-token', verifyAuthToken, async (req, res) => {

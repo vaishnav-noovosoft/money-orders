@@ -5,7 +5,6 @@ const {
     withdrawAmount,
     transferAmount,
     retrieveTransactions,
-    fetch1OldestTransactions
 } = require("../utils/transaction");
 const {getUser} = require('../utils/users');
 const {authenticate, authorize, adminOnly} = require("./middlewares");
