@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-const {executeTransaction} = require("./utils/transaction");
+const {executeTransactions} = require("./utils/transaction");
 const pool = require("./db/postgresPool");
 const {sendEmails} = require("./utils/mail");
 dotenv.config();
@@ -47,8 +47,8 @@ const startTransactionProcessing = async () => {
         const fetchAndProcessOldestTransactions = async () => {
             console.log('Fetching and processing transactions...');
 
-            await executeTransaction(client);
-            console.log('Transaction Exit')
+            await executeTransactions(client);
+            console.log('Transactions processing complete\n');
         };
 
         // Call the function initially to start the process.
