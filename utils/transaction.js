@@ -143,7 +143,7 @@ const checkBalance = async (userId, transactionAmount, client) => {
 
 const updateTransactionStatus = async (transactionId, status = 'PROCESSING', client) => {
     try {
-        const isComplete = status === 'COMPLETE';
+        const isComplete = status === 'COMPLETED';
 
         // For InComplete Transaction
         const inCompleteTransactionQuery = `
@@ -242,7 +242,7 @@ async function executeTransactions(client, limit = 10) {
             if (type === 'DEPOSIT') {
                 await updateTransactionStatus(transaction.id, 'PROCESSING', client);
                 await depositAmount(to_user, amount, client);
-                await updateTransactionStatus(transaction.id, 'COMPLETE', client);
+                await updateTransactionStatus(transaction.id, 'COMPLETED', client);
 
             } else if (type === 'WITHDRAW') {
                 // Transfer Transaction
@@ -257,7 +257,7 @@ async function executeTransactions(client, limit = 10) {
                 }
 
                 await withdrawAmount(from_user, amount, client);
-                await updateTransactionStatus(transaction.id, 'COMPLETE', client);
+                await updateTransactionStatus(transaction.id, 'COMPLETED', client);
             } else {
                 // Transfer Transaction
                 await updateTransactionStatus(transaction.id, 'PROCESSING', client);
@@ -271,7 +271,7 @@ async function executeTransactions(client, limit = 10) {
                 }
 
                 await transferAmount(to_user, from_user, amount, client);
-                await updateTransactionStatus(transaction.id, 'COMPLETE', client);
+                await updateTransactionStatus(transaction.id, 'COMPLETED', client);
             }
         }
     } catch (err) {
