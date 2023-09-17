@@ -50,7 +50,6 @@ const checkTokenValidity = () => {
 
 
                 } else {
-
                     const emailButton = document.getElementById("emailButton");
                     emailButton.remove();
                     removeElementByClassName("emailContainer");
