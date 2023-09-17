@@ -201,6 +201,7 @@ const checkTokenValidity = () => {
             }
         })
         .catch((err) => {
+            console.error(err);
             window.location.href = '/api/auth/login';
         });
 }
