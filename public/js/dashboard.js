@@ -206,23 +206,18 @@ const populateTableWithEmails = (emails = []) => {
     emails.forEach((email) => {
         const tr = document.createElement('tr');
 
-        const tdType = document.createElement('td');
-        const typeText = document.createTextNode(email.sender_email);
-        tdType.appendChild(typeText);
-        tr.appendChild(tdType);
-
         const tdFromUser = document.createElement('td');
-        const fromUserText = document.createTextNode(email.created_at.toLocaleDateString());
+        const fromUserText = document.createTextNode(email.created_at);
         tdFromUser.appendChild(fromUserText);
         tr.appendChild(tdFromUser);
 
         const tdToUser = document.createElement('td');
-        const toUserText = document.createTextNode(email.created_at.toLocaleTimeString());
+        const toUserText = document.createTextNode(email.created_at);
         tdToUser.appendChild(toUserText);
         tr.appendChild(tdToUser);
 
         const tdAmount = document.createElement('td');
-        const amountText = document.createTextNode(email.email_status);
+        const amountText = document.createTextNode(email.status || '-');
         tdAmount.appendChild(amountText);
         tr.appendChild(tdAmount);
 

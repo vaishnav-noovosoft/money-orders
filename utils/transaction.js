@@ -67,7 +67,7 @@ const transferTransaction = async (fromUserId, toUserId, amount) => {
     return transaction;
 }
 
-const retrieveTransactions = async (user = {}, limit = 15) => {
+const retrieveTransactions = async (user= {}, limit = 15) => {
     if (user.role === 'admin') {
         const query = `
             SELECT t.*, u.username AS from_username, v.username AS to_username, p.status
@@ -165,7 +165,7 @@ const updateTransactionStatus = async (transactionId, status = 'PROCESSING', cli
 
         const result = isComplete ? await client.query(completeTransactionQuery, completeTransactionValues) : await client.query(inCompleteTransactionQuery, inCompleteTransactionValues);
 
-        return result.rows.length === 0;
+        return result.rows.length !== 0;
     } catch (err) {
         console.error('Error while updating transaction status: ', err.message);
         return false;
