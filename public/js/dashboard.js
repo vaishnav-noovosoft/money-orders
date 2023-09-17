@@ -15,14 +15,14 @@ const sendEmailButton = () => {
                 if (data.error) {
                     console.error(data);
                 } else {
-                    const sendEmailBtn = document.getElementById("transaction-table-body");
-                    sendEmailBtn.setAttribute('disabled', 'true');
+                    const sendEmailBtn = document.getElementById("btn-send-email");
+                    sendEmailBtn.disabled = true;
                     sendEmailBtn.innerHTML = "Sent";
 
                     console.log(data);
 
                     setTimeout(() => {
-                        sendEmailBtn.setAttribute('disabled', 'false');
+                        sendEmailBtn.disabled = false;
                         sendEmailBtn.innerHTML = "Send Email";
                     }, 4000);
                 }
@@ -98,9 +98,6 @@ const updateEmailTable = () => {
     }, 10000);
 }
 
-const emailTable = document.getElementById('emailTable');
-if(emailTable) updateEmailTable();
-
 const fetchTransactions = async () => {
     const limit = 15;
     try {
@@ -168,6 +165,7 @@ const removeTransactions = () => {
 setInterval(async () => {
     removeTransactions();
     await fetchTransactions();
+    console.log('Updated transactions');
 }, 10000);
 
 const checkTokenValidity = () => {
@@ -187,6 +185,7 @@ const checkTokenValidity = () => {
                     styleManipulator(body);
                     await fetchTransactions();
                     await fetchEmails();
+                    updateEmailTable();
                 } else {
                     const emailButton = document.getElementById("emailButton");
                     emailButton.remove();

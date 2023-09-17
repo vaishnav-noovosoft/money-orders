@@ -16,6 +16,9 @@ const transporter = nodemailer.createTransport(mailhogTransport);
 
 const sendEmail = async (user, limit = 10) => {
     try {
+        // Verify the transporter configuration
+        await transporter.verify();
+
         const latestTransactions = await retrieveTransactions(user, limit);
         if (!latestTransactions || latestTransactions.length === 0) {
             return;
@@ -85,13 +88,8 @@ const sendEmail = async (user, limit = 10) => {
             html: emailHtml
         }
 
-        await transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                return { error: err.message };
-            } else {
-                return { message: info.response };
-            }
-        });
+        const info = await transporter.sendMail(mailOptions);
+        return { message: info.response };
     }
     catch (err) {
         throw err;
@@ -160,9 +158,11 @@ const sendEmails = async (client, limit = 10) => {
             await updateEmailProcessStatus(client, 'PROCESSING', mail.id);
             sendEmail(userObject, limit)
                 .then(async data => {
-                    await updateEmailProcessStatus(client, 'COMPLETED', mail.id);
+                    if(data.error) await updateEmailProcessStatus(client, 'FAILED', mail.id);
+                    else await updateEmailProcessStatus(client, 'COMPLETED', mail.id);
                 })
-                .catch(err => {
+                .catch(async err => {
+                    await updateEmailProcessStatus(client, 'FAILED', mail.id);
                     console.error('Error sending email', err);
                 });
         }
