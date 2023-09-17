@@ -29,7 +29,6 @@ const sendEmailButton = () => {
 
 emailButton.addEventListener("click", sendEmailButton);
 
-
 const checkTokenValidity = () => {
     fetch(HOST + '/api/auth/verify-token', {
         method: "GET",
@@ -80,7 +79,6 @@ function removeElementByClassName(className) {
 
 }
 function styleManipulator(body){
-
     body.style.display = "block";
     body.style.width = "80%";
     body.style.margin = "auto";
