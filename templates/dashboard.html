@@ -9,13 +9,13 @@
 <body>
 <div class="container center-content">
     <div class="emailButton" id="emailButton">
-        <button type="button" class="myButton" id="myButton">Send Email!</button>
+        <button type="button" class="btn-send-email" id="btn-send-email">Send Email!</button>
     </div>
     <div class="container">
         <div class="transaction-history">
             <h2>Transaction History</h2>
 
-            <table id="myTable">
+            <table id="transaction-table">
                 <thead>
                 <tr>
                     <th>Type</th>
@@ -25,8 +25,8 @@
                     <th>Status</th>
                 </tr>
                 </thead>
-                <tbody id="table-body">
-                <!-- Rows for transaction history will be fetched from the database -->
+                <tbody id="transaction-table-body">
+                    <!-- Rows for transaction history will be fetched from the database -->
                 </tbody>
             </table>
         </div>
@@ -37,14 +37,14 @@
 
             <table id="emailTable">
                 <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Status</th>
-                </tr>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
                 </thead>
                 <tbody id="email-table-body">
-                <!-- Rows for transaction history will be fetched from the database -->
+                    <!-- Rows for transaction history will be fetched from the database -->
                 </tbody>
             </table>
         </div>

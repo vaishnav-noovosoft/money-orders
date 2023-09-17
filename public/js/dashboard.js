@@ -15,11 +15,16 @@ const sendEmailButton = () => {
                 if (data.error) {
                     console.error(data);
                 } else {
-                    const myButton = document.getElementById("myButton");
-                    myButton.setAttribute('disabled', true);
-                    myButton.innerHTML = "Sent";
-                    // setTimeout(changeInnerHTML, 5000);
-                    console.log("Email sent successfully")
+                    const sendEmailBtn = document.getElementById("transaction-table-body");
+                    sendEmailBtn.setAttribute('disabled', 'true');
+                    sendEmailBtn.innerHTML = "Sent";
+
+                    console.log(data);
+
+                    setTimeout(() => {
+                        sendEmailBtn.setAttribute('disabled', 'false');
+                        sendEmailBtn.innerHTML = "Send Email";
+                    }, 4000);
                 }
             })
     } catch (err) {
@@ -29,93 +34,95 @@ const sendEmailButton = () => {
 
 emailButton.addEventListener("click", sendEmailButton);
 
-const checkTokenValidity = () => {
-    fetch(HOST + '/api/auth/verify-token', {
-        method: "GET",
-        headers: getHeader()
-    })
-        .then((res) => res.json())
-        .then(async data => {
-            if (data.error) {
-                window.location.href = '/api/auth/login';
-            } else {
-                const role = data.user.role;
-                if (role === "user") {
-                    removeElementByClassName("adminContainer");
-                    const body = document.body;
-                    styleManipulator(body);
-                    await fetchTransactions();
-                    await fetchEmails();
+// Fetch Emails
+const populateTableWithEmails = (emails = []) => {
+    const tbody = document.getElementById('email-table-body');
 
+    emails.forEach((email) => {
+        const tr = document.createElement('tr');
+        const emailCreatedAt = new Date(email.created_at);
 
-                } else {
-                    const emailButton = document.getElementById("emailButton");
-                    emailButton.remove();
-                    removeElementByClassName("emailContainer");
+        const tdFromUser = document.createElement('td');
+        const fromUserText = document.createTextNode(emailCreatedAt.toLocaleDateString('en-IN').toUpperCase());
+        tdFromUser.appendChild(fromUserText);
+        tr.appendChild(tdFromUser);
 
-                    await listUsers('toUserDeposit');
-                    await listUsers('fromUserWithdraw');
-                    await listUsers('toUserTransfer');
-                    await listUsers('fromUserTransfer');
-                    await fetchTransactions();
-                }
-            }
-        })
-        .catch((err) => {
-            window.location.href = '/api/auth/login';
-        });
-}
+        const tdToUser = document.createElement('td');
+        const toUserText = document.createTextNode(emailCreatedAt.toLocaleTimeString('en-IN').toUpperCase());
+        tdToUser.appendChild(toUserText);
+        tr.appendChild(tdToUser);
 
-checkTokenValidity();
+        const tdAmount = document.createElement('td');
+        const amountText = document.createTextNode(email.status || '-');
+        tdAmount.appendChild(amountText);
+        tr.appendChild(tdAmount);
 
-
-function removeElementByClassName(className) {
-    const removeAdmin = document.querySelectorAll('.' + className);
-    removeAdmin.forEach(element => {
-        element.remove();
+        tbody.appendChild(tr);
     });
-
-
-
-}
-function styleManipulator(body){
-    body.style.display = "block";
-    body.style.width = "80%";
-    body.style.margin = "auto";
 }
 
-const retrieveUsersFromDB = async () => {
+const fetchEmails = async () => {
+    const limit = 10;
     try {
-        const data = await fetch(HOST + '/api/users', {
+        fetch(HOST + `/api/mail?limit=${limit}`, {
             method: 'GET',
-            headers: getHeader(),
-        });
-
-        return await data.json();
-    } catch (error) {
-        console.error('Error retrieving users');
+            headers: getHeader()
+        })
+            .then((res) => res.json())
+            .then(data => {
+                if (data.error)
+                    console.error(data);
+                else {
+                    populateTableWithEmails(data.emails);
+                }
+            });
+    } catch (err) {
+        console.error('Error while retrieving emails Transaction', err);
     }
 }
 
-const listUsers = async (element) => {
-    const usersSelect = document.getElementById(element);
+const removeEmails = () => {
+    const tbody = document.getElementById('email-table-body');
 
+    while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+    }
+}
 
-    const {users} = await retrieveUsersFromDB();
+// Fetch and Update Emails every 10 seconds
+const updateEmailTable = () => {
+    setInterval(async () => {
+        removeEmails();
+        await fetchEmails();
+        console.log('Updated emails');
+    }, 10000);
+}
 
-    users.forEach((user => {
-        const option = document.createElement('option');
+const emailTable = document.getElementById('emailTable');
+if(emailTable) updateEmailTable();
 
-        const innerText = document.createTextNode(user.username.toString());
-        option.appendChild(innerText);
-
-        option.setAttribute('value', user.username.toString());
-        usersSelect.appendChild(option);
-    }));
+const fetchTransactions = async () => {
+    const limit = 15;
+    try {
+        fetch(HOST + `/api/transactions?limit=${limit}`, {
+            method: 'GET',
+            headers: getHeader()
+        })
+            .then((res) => res.json())
+            .then(data => {
+                if (data.error)
+                    console.error(data);
+                else {
+                    populateTableWithTransactions(data.transactions);
+                }
+            });
+    } catch (err) {
+        console.error('Error while retrieving transactions', err);
+    }
 }
 
 const populateTableWithTransactions = (transactions = []) => {
-    const tbody = document.getElementById('table-body');
+    const tbody = document.getElementById('transaction-table-body');
 
     transactions.forEach((transaction) => {
         const tr = document.createElement('tr');
@@ -149,79 +156,96 @@ const populateTableWithTransactions = (transactions = []) => {
     });
 }
 
-const fetchTransactions = async () => {
-    const limit = 15;
-    try {
-        fetch(HOST + `/api/transactions?limit=${limit}`, {
-            method: 'GET',
-            headers: getHeader()
-        })
-            .then((res) => res.json())
-            .then(data => {
-                if (data.error)
-                    console.error(data);
-                else {
-                    populateTableWithTransactions(data.transactions);
-                }
-            });
-    } catch (err) {
-        console.error('Error while retrieving transactions', err);
-    }
-}
-
 const removeTransactions = () => {
-    const tbody = document.getElementById('table-body');
+    const tbody = document.getElementById('transaction-table-body');
 
     while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
     }
 }
 
-// Fetch Emails
-const fetchEmails = async () => {
-    const limit = 10;
-    try {
-        fetch(HOST + `/api/mail?limit=${limit}`, {
-            method: 'GET',
-            headers: getHeader()
-        })
-            .then((res) => res.json())
-            .then(data => {
-                if (data.error)
-                    console.error(data);
-                else {
-                    populateTableWithEmails(data.emails);
+// Fetch and Update Transactions every 10 seconds
+setInterval(async () => {
+    removeTransactions();
+    await fetchTransactions();
+}, 10000);
+
+const checkTokenValidity = () => {
+    fetch(HOST + '/api/auth/verify-token', {
+        method: "GET",
+        headers: getHeader()
+    })
+        .then((res) => res.json())
+        .then(async data => {
+            if (data.error) {
+                window.location.href = '/api/auth/login';
+            } else {
+                const role = data.user.role;
+                if (role === "user") {
+                    removeElementByClassName("adminContainer");
+                    const body = document.body;
+                    styleManipulator(body);
+                    await fetchTransactions();
+                    await fetchEmails();
+                } else {
+                    const emailButton = document.getElementById("emailButton");
+                    emailButton.remove();
+                    removeElementByClassName("emailContainer");
+
+                    await listUsers('toUserDeposit');
+                    await listUsers('fromUserWithdraw');
+                    await listUsers('toUserTransfer');
+                    await listUsers('fromUserTransfer');
+                    await fetchTransactions();
                 }
-            });
-    } catch (err) {
-        console.error('Error while retrieving emails Transaction', err);
+            }
+        })
+        .catch((err) => {
+            window.location.href = '/api/auth/login';
+        });
+}
+
+checkTokenValidity();
+
+function removeElementByClassName(className) {
+    const removeAdmin = document.querySelectorAll('.' + className);
+    removeAdmin.forEach(element => {
+        element.remove();
+    });
+}
+
+function styleManipulator(body){
+    body.style.display = "block";
+    body.style.width = "80%";
+    body.style.margin = "auto";
+}
+
+const retrieveUsersFromDB = async () => {
+    try {
+        const data = await fetch(HOST + '/api/users', {
+            method: 'GET',
+            headers: getHeader(),
+        });
+
+        return await data.json();
+    } catch (error) {
+        console.error('Error retrieving users');
     }
 }
-const populateTableWithEmails = (emails = []) => {
-    const tbody = document.getElementById('emailTable');
 
-    emails.forEach((email) => {
-        const tr = document.createElement('tr');
+const listUsers = async (element) => {
+    const usersSelect = document.getElementById(element);
+    const {users} = await retrieveUsersFromDB();
 
-        const tdFromUser = document.createElement('td');
-        const fromUserText = document.createTextNode(email.created_at);
-        tdFromUser.appendChild(fromUserText);
-        tr.appendChild(tdFromUser);
+    users.forEach((user => {
+        const option = document.createElement('option');
 
-        const tdToUser = document.createElement('td');
-        const toUserText = document.createTextNode(email.created_at);
-        tdToUser.appendChild(toUserText);
-        tr.appendChild(tdToUser);
+        const innerText = document.createTextNode(user.username.toString());
+        option.appendChild(innerText);
 
-        const tdAmount = document.createElement('td');
-        const amountText = document.createTextNode(email.status || '-');
-        tdAmount.appendChild(amountText);
-        tr.appendChild(tdAmount);
-
-        tbody.appendChild(tr);
-
-
-    });
+        option.setAttribute('value', user.username.toString());
+        usersSelect.appendChild(option);
+    }));
 }
 
 // Transaction actions
