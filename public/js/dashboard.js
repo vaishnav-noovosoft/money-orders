@@ -1,6 +1,7 @@
 import {getHeader, HOST, setUser, getUser} from './client-config.js';
 
 const emailButton = document.getElementById('btn-send-email');
+let lastTimestamp = null;
 
 const setStatusTextColor = (element, status) => {
     if(status === 'PENDING') element.className = 'text-yellow';
@@ -143,8 +144,14 @@ const updateEmailTable = () => {
 
 const fetchTransactions = async () => {
     const limit = 15;
+
+    let URI = HOST + `/api/transactions?limit=${limit}`;
+    if(lastTimestamp)
+        URI += `&lastTimestamp=${lastTimestamp}`;
+    console.log(URI);
+
     try {
-        fetch(HOST + `/api/transactions?limit=${limit}`, {
+        fetch(URI, {
             method: 'GET',
             headers: getHeader()
         })
@@ -153,6 +160,7 @@ const fetchTransactions = async () => {
                 if (data.error)
                     console.error(data);
                 else {
+                    lastTimestamp = data.transactions[0].created_at;
                     populateTableWithTransactions(data.transactions);
                 }
             });

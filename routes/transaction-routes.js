@@ -9,7 +9,7 @@ const {createProcess} = require("../utils/processes");
 router.use(authenticate);
 
 router.get('/', async (req, res) => {
-    const limit = req.query.limit;
+    const {limit, lastTimestamp} = req.query;
 
     if (!limit) return res.status(400).json({error: 'Missing limit parameter'});
 
