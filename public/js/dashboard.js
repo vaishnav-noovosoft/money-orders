@@ -1,6 +1,40 @@
-import { getHeader, HOST } from './clientConfig.js';
+import {getHeader, HOST, setUser, getUser} from './clientConfig.js';
 
-const emailButton = document.getElementById('emailButton')
+const emailButton = document.getElementById('btn-send-email');
+
+const setStatusTextColor = (element, status) => {
+    if(status === 'PENDING') element.className = 'text-yellow';
+    else if(status === 'PROCESSING') element.className = 'text-blue';
+    else if(status === 'COMPLETED') element.className = 'text-green';
+    else element.className = 'text-red';
+}
+
+const setAmountTextColor = (element, transactionType, toUser = '') => {
+    if(transactionType === 'DEPOSIT') {
+        element.textContent = '+' + element.textContent;
+        element.className = 'text-green';
+    }
+    else if(transactionType === 'WITHDRAW') {
+        element.textContent = '-' + element.textContent;
+        element.className = 'text-red';
+    }
+    else if(transactionType === 'TRANSFER') {
+        const {username, role} = getUser();
+        if(role === 'user') {
+            if(username === toUser) {
+                element.textContent = '+' + element.textContent;
+                element.className = 'text-green';
+            }
+            else {
+                element.textContent = '-' + element.textContent;
+                element.className = 'text-red';
+            }
+        } else if(role === 'admin') {
+            element.className = 'text-yellow';
+        }
+    }
+}
+
 const sendEmailButton = () => {
     const limit = 15;
     try {
@@ -19,12 +53,13 @@ const sendEmailButton = () => {
                     sendEmailBtn.disabled = true;
                     sendEmailBtn.innerHTML = "Sent";
 
-                    console.log(data);
-
                     setTimeout(() => {
                         sendEmailBtn.disabled = false;
                         sendEmailBtn.innerHTML = "Send Email";
                     }, 4000);
+
+                    removeEmails();
+                    await fetchEmails();
                 }
             })
     } catch (err) {
@@ -33,6 +68,13 @@ const sendEmailButton = () => {
 }
 
 emailButton.addEventListener("click", sendEmailButton);
+
+const getEmailStatus = (status) => {
+    if(status === 'PROCESSING') return 'QUEUED';
+    else if(status === 'COMPLETED') return  'SENT';
+    else if(status === 'PENDING') return 'PENDING';
+    else return 'FAILED';
+}
 
 // Fetch Emails
 const populateTableWithEmails = (emails = []) => {
@@ -53,8 +95,9 @@ const populateTableWithEmails = (emails = []) => {
         tr.appendChild(tdToUser);
 
         const tdAmount = document.createElement('td');
-        const amountText = document.createTextNode(email.status || '-');
+        const amountText = document.createTextNode(getEmailStatus(email.status) || '-');
         tdAmount.appendChild(amountText);
+        setStatusTextColor(tdAmount, email.status);
         tr.appendChild(tdAmount);
 
         tbody.appendChild(tr);
@@ -142,11 +185,13 @@ const populateTableWithTransactions = (transactions = []) => {
         const tdAmount = document.createElement('td');
         const amountText = document.createTextNode(transaction.amount);
         tdAmount.appendChild(amountText);
+        setAmountTextColor(tdAmount, transaction.type, transaction.to_username);
         tr.appendChild(tdAmount);
 
         const tdStatus = document.createElement('td');
         const statusText = document.createTextNode(transaction.status || '-');
         tdStatus.appendChild(statusText);
+        setStatusTextColor(tdStatus, transaction.status);
         tr.appendChild(tdStatus);
 
         tbody.appendChild(tr);
@@ -179,17 +224,21 @@ const checkTokenValidity = () => {
                 window.location.href = '/api/auth/login';
             } else {
                 const role = data.user.role;
+
+                // Set current user in localStorage
+                setUser({username: data.user.username, role: data.user.role});
+
                 if (role === "user") {
-                    removeElementByClassName("adminContainer");
+                    removeElementByClassName("admin-container");
                     const body = document.body;
                     styleManipulator(body);
                     await fetchTransactions();
                     await fetchEmails();
                     updateEmailTable();
                 } else {
-                    const emailButton = document.getElementById("emailButton");
+                    const emailButton = document.getElementById("email-btn-wrapper");
                     emailButton.remove();
-                    removeElementByClassName("emailContainer");
+                    removeElementByClassName("email-history");
 
                     await listUsers('toUserDeposit');
                     await listUsers('fromUserWithdraw');

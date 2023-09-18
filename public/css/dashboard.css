@@ -1,63 +1,91 @@
-
 :root {
-    --darkYellow: #F6BE00;
-    --blue: #1e90ff;
-    --white: rgba(0, 0, 0, 0.1);
-    --black: rgb(0, 0, 0);
-    --light-blue: rgba(30, 144, 255, 0.65)
+    --blue: #1E90FF;
+    --white: #FFFFFF;
+    --black: #000000;
+    --yellow: #E6B800;
+    --red: #ff3333;
+    --green: limegreen;
+    --light-blue: #3366FF;
+    --light-gray: #DDDDDD;
 }
 
 body {
     background-color: var(--blue);
-    color: white;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     margin: 0;
-    padding-top: 20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
 
+.text-yellow {
+    color: var(--yellow);
+}
+
+.text-red {
+    color: var(--red);
+}
+
+.text-green {
+    color: var(--green);
+}
+
+.text-blue {
+    color: var(--light-blue);
+}
+
 .container {
-   padding-inline: 20px;
+   padding: 2rem;
 }
 
-.transaction-history {
-    background-color: var(--darkYellow);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+.user-container {
+    display: flex;
+    gap: 1rem;
 }
 
-.transaction-history table {
+.table-wrapper {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    height: fit-content;
+    width: 100%;
+}
+
+.table-wrapper .heading {
+    margin-top: 0;
+}
+
+.table-wrapper table {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
-    color: black;
-
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
-
+    color: var(--black);
 }
 
-.transaction-history table, .transaction-history th, .transaction-history td {
-    border: 1px solid var(--black);
-
-
+.table-wrapper table, .table-wrapper th, .table-wrapper td {
+    border: 1px solid var(--light-gray);
 }
 
-.transaction-history th, .transaction-history td {
-    padding: 10px;
-    text-align: center;
+.table-wrapper th, .table-wrapper td {
+    padding: 0.3rem;
+    text-align: left;
 }
 
 .transaction-form {
-    background-color: var(--darkYellow);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
 }
 
-.deposit{
-    margin-bottom: 20px;
+.table-wrapper h3 {
+    margin-top: 0;
+}
+
+.transaction-form label {
+    font-size: 13px;
+}
+
+.deposit {
+    margin-bottom: 1.5rem;
 }
 
 .form-group {
@@ -80,7 +108,7 @@ body {
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
     border: solid 2px #007acc;
-
+    margin-bottom: 0.5rem;
 }
 
 .deposit-form, .withdraw-form {
@@ -108,31 +136,41 @@ body {
 }
 
 .btn-transfer {
-    margin-top: 1rem;
+    margin-top: 1.1rem;
 }
 
 .transfer {
     margin-top: 1rem;
 }
-#emailButton{
-    float: right;
-    margin-top: 45px;
-    margin-right: 50px;
-}
-#btn-send-email{
-    display: block;
 
-    background-color: #007acc;
+.transaction-table-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#email-btn-wrapper {
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+}
+
+#btn-send-email {
+    background-color: var(--light-blue);
     color: white;
     padding: 10px 20px;
     cursor: pointer;
-    border: 1px white;
-
+    border: none;
+    border-radius: 0.5rem;
+    width: 7rem;
 }
+
 #btn-send-email:hover{
     background-color: darkblue;
 }
-.emailContainer{
+
+.email-container {
     margin-top: 20px;
 }
 
