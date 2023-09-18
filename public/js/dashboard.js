@@ -30,12 +30,56 @@ const sendEmailButton = () => {
 }
 emailButton.addEventListener("click", sendEmailButton);
 
+//Emails
+const populateTableWithEmails = (emails = []) => {
+    const tbody = document.getElementById('emailTable');
 
-// function changeInnerHTML() {
-//     const myButton = document.getElementById("myButton");
-//     myButton.innerHTML = "Send Email Again!";
-// }
+    emails.forEach((email) => {
+        const tr = document.createElement('tr');
 
+        const tdType = document.createElement('td');
+        const typeText = document.createTextNode(email.sender_email);
+        tdType.appendChild(typeText);
+        tr.appendChild(tdType);
+
+        const tdFromUser = document.createElement('td');
+        const fromUserText = document.createTextNode(email.created_at.toLocaleDateString());
+        tdFromUser.appendChild(fromUserText);
+        tr.appendChild(tdFromUser);
+
+        const tdToUser = document.createElement('td');
+        const toUserText = document.createTextNode(email.created_at.toLocaleTimeString());
+        tdToUser.appendChild(toUserText);
+        tr.appendChild(tdToUser);
+
+        const tdAmount = document.createElement('td');
+        const amountText = document.createTextNode(email.email_status);
+        tdAmount.appendChild(amountText);
+        tr.appendChild(tdAmount);
+
+        tbody.appendChild(tr);
+    });
+}
+
+const fetchEmails = async () => {
+    const limit = 10;
+    try {
+        fetch(HOST + `/api/mail?limit=${limit}`, {
+            method: 'GET',
+            headers: headers
+        })
+            .then((res) => res.json())
+            .then(data => {
+                if (data.error)
+                    console.error(data);
+                else {
+                    populateTableWithEmails(data.emails);
+                }
+            });
+    } catch (err) {
+        console.error('Error while retrieving emails Transaction', err);
+    }
+}
 
 const checkTokenValidity = () => {
     fetch(HOST + '/api/auth/verify-token', {
@@ -88,7 +132,6 @@ function removeElementByClassName(className) {
 
 }
 function styleManipulator(body){
-
     body.style.display = "block";
     body.style.width = "80%";
     body.style.margin = "auto";
@@ -187,57 +230,6 @@ const removeTransactions = () => {
     while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
     }
-}
-//Emails
-const fetchEmails = async () => {
-    const limit = 10;
-    try {
-        fetch(HOST + `/api/mail?limit=${limit}`, {
-            method: 'GET',
-            headers: headers
-        })
-            .then((res) => res.json())
-            .then(data => {
-                if (data.error)
-                    console.error(data);
-                else {
-                    populateTableWithEmails(data.emails);
-                }
-            });
-    } catch (err) {
-        console.error('Error while retrieving emails Transaction', err);
-    }
-}
-const populateTableWithEmails = (emails = []) => {
-    const tbody = document.getElementById('emailTable');
-
-    emails.forEach((email) => {
-        const tr = document.createElement('tr');
-
-        const tdType = document.createElement('td');
-        const typeText = document.createTextNode(email.sender_email);
-        tdType.appendChild(typeText);
-        tr.appendChild(tdType);
-
-        const tdFromUser = document.createElement('td');
-        const fromUserText = document.createTextNode(email.created_at.toLocaleDateString());
-        tdFromUser.appendChild(fromUserText);
-        tr.appendChild(tdFromUser);
-
-        const tdToUser = document.createElement('td');
-        const toUserText = document.createTextNode(email.created_at.toLocaleTimeString());
-        tdToUser.appendChild(toUserText);
-        tr.appendChild(tdToUser);
-
-        const tdAmount = document.createElement('td');
-        const amountText = document.createTextNode(email.email_status);
-        tdAmount.appendChild(amountText);
-        tr.appendChild(tdAmount);
-
-        tbody.appendChild(tr);
-
-
-    });
 }
 
 // Transaction actions
