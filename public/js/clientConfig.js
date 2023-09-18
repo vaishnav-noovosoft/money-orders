@@ -10,3 +10,11 @@ export const getHeader = () => {
         'Authorization': `Bearer ${getAuthToken()}` // Include the authorization token
     });
 }
+
+export const setUser = ({ username = '', role= '' }) => {
+    localStorage.setItem('user', JSON.stringify({"username": username, "role": role}));
+}
+
+export const getUser = () => {
+    return JSON.parse(localStorage.getItem('user'));
+}

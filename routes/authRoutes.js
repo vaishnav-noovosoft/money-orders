@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
 
 
 router.get('/verify-token', authenticate, async (req, res) => {
-    return res.status(200).json({ message: 'ok', user:  { role: req.user.role }});
+    return res.status(200).json({ message: 'ok', user:  { role: req.user.role, username: req.user.username }});
 });
 
 module.exports = router;

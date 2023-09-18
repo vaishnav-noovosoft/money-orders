@@ -4,16 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Ordering Action</title>
+
+    <!--Google font - Inter-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
-<div class="container center-content">
-    <div class="emailButton" id="emailButton">
-        <button type="button" class="btn-send-email" id="btn-send-email">Send Email!</button>
-    </div>
-    <div class="container">
-        <div class="transaction-history">
-            <h2>Transaction History</h2>
+    <div class="container user-container">
+        <!-- Transaction table -->
+        <div class="table-wrapper">
+            <div class="transaction-table-head">
+                <h3 class="heading">Transaction History</h3>
+
+                <!-- Email send button -->
+                <div class="email-btn-wrapper" id="email-btn-wrapper">
+                    <button type="button" class="btn-send-email" id="btn-send-email">Send Email!</button>
+                </div>
+            </div>
 
             <table id="transaction-table">
                 <thead>
@@ -30,103 +40,103 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="container emailContainer id=emailContainer">
-        <div class="transaction-history email-history">
-            <h2>Email History</h2>
 
-            <table id="emailTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="email-table-body">
-                    <!-- Rows for transaction history will be fetched from the database -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+        <!-- Email table -->
+        <div class="table-wrapper email-history">
+                <h3>Email History</h3>
 
-<div class="container adminContainer">
-    <div class="transaction-form deposit">
-        <h2>Deposit Money</h2>
-        <div class="deposit-form-div">
-            <form class="deposit-form" id="form-deposit">
-                <div class="form-group">
-                    <div class="input-group">
-                        <label for="toUserDeposit">To User</label>
-                        <select class="form-input" id="toUserDeposit" >
-                            <option value="">Select user</option>
-                            <!-- Options will be populated from the database -->
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="amountDeposit">Amount</label>
-                        <input class="form-input" type="text" id="amountDeposit" required>
-                    </div>
-                </div>
-                <button id="btn-deposit" class="btn-submit" type="submit">Deposit</button>
-            </form>
-        </div>
-    </div>
-    <div class="transaction-form withdraw">
-        <h2>Withdraw Money</h2>
-        <div class="withdraw-form-div">
-            <form class="withdraw-form" id="form-withdraw">
-                <div class="form-group">
-                    <div class="input-group">
-                        <label for="fromUserWithdraw">From User</label>
-                        <select class="form-input" id="fromUserWithdraw">
-                            <option value="">Select user</option>
-                            <!-- Options will be populated from the database -->
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="amountWithdraw">Amount</label>
-                        <input class="form-input" type="text" id="amountWithdraw" required>
-                    </div>
-                </div>
-                <button id="btn-withdraw" class="btn-submit" type="submit">Withdraw</button>
-            </form>
-        </div>
+                <table id="emailTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="email-table-body">
+                        <!-- Rows for transaction history will be fetched from the database -->
+                    </tbody>
+                </table>
+            </div>
     </div>
 
-    <div class="transaction-form transfer">
-        <h2>Transfer Money</h2>
-        <div class="transfer-form-div">
-            <form class="transfer-form" id="form-transfer">
-                <div class="form-group">
-                    <div class="input-group">
-                        <label for="fromUserTransfer">From User</label>
-                        <select class="form-input" id="fromUserTransfer">
-                            <option value="">Select User</option>
-                        </select>
+    <div class="container admin-container">
+        <div class="transaction-form deposit">
+            <h3>Deposit Money</h3>
+            <div class="deposit-form-div">
+                <form class="deposit-form" id="form-deposit">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <label for="toUserDeposit">To User</label>
+                            <select class="form-input" id="toUserDeposit" >
+                                <option value="">Select user</option>
+                                <!-- Options will be populated from the database -->
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="amountDeposit">Amount</label>
+                            <input class="form-input" type="text" id="amountDeposit" required>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="toUserTransfer">To User</label>
-                        <select class="form-input" id="toUserTransfer">
-                            <option value="">Select User</option>
-                        </select>
+                    <button id="btn-deposit" class="btn-submit" type="submit">Deposit</button>
+                </form>
+            </div>
+        </div>
+        <div class="transaction-form withdraw">
+            <h3>Withdraw Money</h3>
+            <div class="withdraw-form-div">
+                <form class="withdraw-form" id="form-withdraw">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <label for="fromUserWithdraw">From User</label>
+                            <select class="form-input" id="fromUserWithdraw">
+                                <option value="">Select user</option>
+                                <!-- Options will be populated from the database -->
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="amountWithdraw">Amount</label>
+                            <input class="form-input" type="text" id="amountWithdraw" required>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <div class="input-group">
-                        <label for="amountTransfer">Amount</label>
-                        <input type="text" name="amountTransfer" id="amountTransfer" class="form-input" required />
+                    <button id="btn-withdraw" class="btn-submit" type="submit">Withdraw</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="transaction-form transfer">
+            <h3>Transfer Money</h3>
+            <div class="transfer-form-div">
+                <form class="transfer-form" id="form-transfer">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <label for="fromUserTransfer">From User</label>
+                            <select class="form-input" id="fromUserTransfer">
+                                <option value="">Select User</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="toUserTransfer">To User</label>
+                            <select class="form-input" id="toUserTransfer">
+                                <option value="">Select User</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <button id="btn-transfer" type="submit" class="btn-submit btn-transfer">Transfer</button>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <label for="amountTransfer">Amount</label>
+                            <input type="text" name="amountTransfer" id="amountTransfer" class="form-input" required />
+                        </div>
+                        <div class="input-group">
+                            <button id="btn-transfer" type="submit" class="btn-submit btn-transfer">Transfer</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-<script type="module" src="/js/clientConfig.js"></script>
-<script type="module" src="/js/dashboard.js"></script>
+
+    <script type="module" src="/js/clientConfig.js"></script>
+    <script type="module" src="/js/dashboard.js"></script>
 </body>
 </html>

@@ -212,7 +212,7 @@ const listEmails = async (receiverUserId, limit= 10) => {
           FROM emails e
           INNER JOIN processes p ON p.email_id = e.id
           WHERE receiver = $1 
-          ORDER BY created_at 
+          ORDER BY created_at DESC
           LIMIT $2;
         `;
         const values = [receiverUserId, limit];
