@@ -1,61 +1,102 @@
 const db = require("../db/postgres");
 const pool = require("../db/postgresPool");
-const {getUser} = require("./users");
 
-const depositAmount = async (userId, amount) => {
+const addTransactionInProcess = async (client, transactionId) => {
+    // Add transaction for batch processing
+    const processQuery = 'INSERT INTO processes (transaction_id) VALUES ($1) RETURNING *';
+    const processValues = [transactionId];
+    const processResult = await client.query(processQuery, processValues);
+    if(processResult.rows.length === 0) {
+        console.error('Error adding transaction in processes');
+    }
+}
+
+const depositTransaction = async (userId, amount) => {
+    const client = await pool.connect();
+
     const depositQuery = 'INSERT INTO transactions (type, to_user, amount) VALUES ($1, $2, $3) RETURNING *';
-    const depositValues = ['deposit', userId, amount];
-    const result = await db.query(depositQuery, depositValues);
+    const depositValues = ['DEPOSIT', userId, amount];
+    const result = await client.query(depositQuery, depositValues);
 
     if (result.rows.length === 0) {
         throw new Error('Error creating transaction');
     }
+    const transaction = result.rows[0];
+
+    // Add transaction for batch processing
+    await addTransactionInProcess(client, transaction.id);
+
     return result.rows[0];
 };
-const withdrawAmount = async (userId, amount) => {
+
+const withdrawTransaction = async (userId, amount) => {
+    const client = await pool.connect();
+
     const withdrawQuery = 'INSERT INTO transactions (type, from_user, amount) values ($1, $2, $3) RETURNING *';
-    const withdrawValues = ['withdraw', userId, amount];
+    const withdrawValues = ['WITHDRAW', userId, amount];
     const result = await db.query(withdrawQuery, withdrawValues);
 
     if (result.rows.length === 0) {
         throw new Error('Error creating transaction');
     }
+    const transaction = result.rows[0];
+
+    // Add transaction for batch processing
+    await addTransactionInProcess(client, transaction.id);
+
     return result.rows[0];
 }
-const transferAmount = async (fromUserId, toUserId, amount) => {
-    const transferMoneyQuery = 'INSERT INTO transactions (type, from_user, to_user, amount) values ($1, $2, $3, $4) RETURNING *';
-    const transferMoneyValues = ['transfer', fromUserId, toUserId, amount];
-    const result = await db.query(transferMoneyQuery, transferMoneyValues);
+
+const transferTransaction = async (fromUserId, toUserId, amount) => {
+    const client = await pool.connect();
+
+    // Store new transfer transaction
+    const transferMoneyQuery = 'INSERT INTO transactions (type, from_user, to_user, amount) VALUES ($1, $2, $3, $4) RETURNING *';
+    const transferMoneyValues = ['TRANSFER', fromUserId, toUserId, amount];
+    const result = await client.query(transferMoneyQuery, transferMoneyValues);
 
     if (result.rows.length === 0) {
-        throw new Error('Error creating transaction');
+        throw 'Error creating transaction';
     }
-    return result.rows[0];
+    const transaction = result.rows[0];
+
+    // Add transaction for batch processing
+    await addTransactionInProcess(client, transaction.id);
+
+    client.release();
+    return transaction;
 }
 
-const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
-    if (userRole === 'admin') {
-        const query = 'SELECT t.*, u.username AS from_username, v.username AS to_username\n' +
-            'FROM transactions t\n' +
-            'LEFT JOIN users u ON t.from_user = u.user_id\n' +
-            'LEFT JOIN users v ON t.to_user = v.user_id\n' +
-            'ORDER BY t.date_created DESC\n' +
-            'LIMIT $1;';
+const retrieveTransactions = async (user= {}, limit = 15) => {
+    if (user.role === 'admin') {
+        const query = `
+            SELECT t.*, u.username AS from_username, v.username AS to_username, p.status
+            FROM transactions t
+            LEFT JOIN users u ON t.from_user = u.id
+            LEFT JOIN users v ON t.to_user = v.id
+            LEFT JOIN processes p ON t.id = p.transaction_id
+            ORDER BY t.created_at DESC
+            LIMIT $1;
+        `;
         const values = [limit];
         const result = await db.query(query, values);
 
         return result.rows;
-    } else if (userRole === 'user') {
-        const query = 'SELECT t.*, u.username AS from_username, v.username AS to_username\n' +
-            'FROM transactions t\n' +
-            'LEFT JOIN users u ON t.from_user = u.user_id\n' +
-            'LEFT JOIN users v ON t.to_user = v.user_id\n' +
-            'WHERE (t."type" = \'deposit\' AND v.username = $1)\n' +
-            '   OR (t."type" = \'withdraw\' AND u.username = $1)\n' +
-            '   OR (t."type" = \'transfer\' AND (u.username = $1 OR v.username = $1))\n' +
-            'ORDER BY t.date_created DESC\n' +
-            'LIMIT $2;'
-        const values = [user.username, limit];
+    } else if (user.role === 'user') {
+        const query = `
+            SELECT t.*, u.username AS from_username, v.username AS to_username, p.status
+            FROM transactions t
+            LEFT JOIN users u ON t.from_user = u.id
+            LEFT JOIN users v ON t.to_user = v.id
+            LEFT JOIN processes p ON t.id = p.transaction_id
+            WHERE 
+                (t."type" = 'DEPOSIT' AND t.to_user = $1)
+                OR (t."type" = 'WITHDRAW' AND t.from_user = $1)
+                OR (t."type" = 'TRANSFER' AND (t.from_user = $1 OR t.to_user = $1))
+            ORDER BY t.created_at DESC
+            LIMIT $2;
+        `;
+        const values = [user.id, limit];
         const result = await db.query(query, values);
 
         return result.rows;
@@ -64,64 +105,81 @@ const retrieveTransactions = async (user = {}, userRole = '', limit = 0) => {
     }
 };
 
-const fetchOldestTransactions = async (client) => {
+const fetchOldestTransactions = async (client, limit = 10) => {
     try {
-        const query = 'SELECT *\n' +
-            'FROM transactions\n' +
-            'WHERE status = \'pending\'\n' +
-            'ORDER BY date_created ASC\n' +
-            'LIMIT 10;';
-        const result = await client.query(query);
+        const query = `
+            SELECT t.*, p.status
+            FROM transactions t
+            INNER JOIN processes p ON t.id = p.transaction_id
+            WHERE p.status = 'PENDING'
+            ORDER BY t.created_at ASC
+            LIMIT $1;
+        `;
+        const values = [limit];
+        const result = await client.query(query, values);
         return result.rows;
     } catch (err) {
-        console.error('Error while retrieving transactions', err);
+        console.error('Error while retrieving transactions', err.message);
         throw err;
     }
 }
 
-const checkBalance = async (user_id, transactionAmount, client) => {
+const checkBalance = async (userId, transactionAmount, client) => {
     try {
         // Check if Transaction Amount can be deducted from User Balance
         const query = `
-          SELECT balance FROM users WHERE user_id = $1;
+          SELECT balance FROM users WHERE id = $1;
         `;
-        const values = [user_id];
+        const values = [userId];
         const result = await client.query(query, values);
         const balance = result.rows[0].balance;
 
-        return balance > transactionAmount;
+        return balance >= transactionAmount;
     } catch (err) {
-        console.error('Error while checking user amount: ', err);
+        console.error('Error while checking user amount: ', err.message);
         return false;
     }
 }
 
-const updateTransactionStatus = async (transaction_id, status = '', client) => {
+const updateTransactionStatus = async (transactionId, status = 'PROCESSING', client) => {
     try {
-        const query = `
-          UPDATE transactions
+        const isComplete = status === 'COMPLETED';
+
+        // For InComplete Transaction
+        const inCompleteTransactionQuery = `
+          UPDATE processes
           SET status = $1
           WHERE transaction_id = $2
           RETURNING *;
         `;
-        const values = [status, transaction_id];
-        const result = await client.query(query, values);
+        const inCompleteTransactionValues = [status, transactionId];
 
-        return result.rows.length === 0;
+        // For Complete Transaction
+        const completeTransactionQuery = `
+          UPDATE processes
+          SET status = $1, completed_at = $2
+          WHERE transaction_id = $3
+          RETURNING *;
+        `;
+        const completeTransactionValues = [status, new Date().toUTCString(), transactionId]
+
+        const result = isComplete ? await client.query(completeTransactionQuery, completeTransactionValues) : await client.query(inCompleteTransactionQuery, inCompleteTransactionValues);
+
+        return result.rows.length !== 0;
     } catch (err) {
-        console.error('Error while updating transaction status: ', err);
+        console.error('Error while updating transaction status: ', err.message);
         return false;
     }
 }
 
-const deposit = async (to_user, amount, client) => {
+const depositAmount = async (to_user, amount, client) => {
     try {
         // Update user balance
         const updateUserBalanceQuery = `
-                  UPDATE users
-                  SET balance = balance + $1
-                  WHERE user_id = $2;
-                `;
+          UPDATE users
+          SET balance = balance + $1
+          WHERE id = $2;
+        `;
         const updateUserBalanceValues = [amount, to_user];
         await client.query(updateUserBalanceQuery, updateUserBalanceValues);
     } catch (err) {
@@ -129,14 +187,14 @@ const deposit = async (to_user, amount, client) => {
     }
 }
 
-const withdraw = async (from_user, amount, client) => {
+const withdrawAmount = async (from_user, amount, client) => {
     try {
         // Update user balance
         const updateUserBalanceQuery = `
-                  UPDATE users
-                  SET balance = balance - $1
-                  WHERE user_id = $2;
-                `;
+          UPDATE users
+          SET balance = balance - $1
+          WHERE id = $2;
+        `;
         const updateUserBalanceValues = [amount, from_user];
         await client.query(updateUserBalanceQuery, updateUserBalanceValues);
     } catch (err) {
@@ -144,23 +202,23 @@ const withdraw = async (from_user, amount, client) => {
     }
 }
 
-const transfer = async (to_user, from_user, amount, client) => {
+const transferAmount = async (to_user, from_user, amount, client) => {
     try {
         // Update from_user balance
         const updateFromUserBalanceQuery = `
-                  UPDATE users
-                  SET balance = balance - $1
-                  WHERE user_id = $2;
-                `;
+          UPDATE users
+          SET balance = balance - $1
+          WHERE id = $2;
+        `;
         const updateFromUserBalanceValues = [amount, from_user];
         await client.query(updateFromUserBalanceQuery, updateFromUserBalanceValues);
 
         // Update balance of to_user
         const updateToUserBalanceQuery = `
-                  UPDATE users
-                  SET balance = balance + $1
-                  WHERE user_id = $2;
-                `;
+          UPDATE users
+          SET balance = balance + $1
+          WHERE id = $2;
+        `;
         const updateToUserBalanceValues = [amount, to_user];
         await client.query(updateToUserBalanceQuery, updateToUserBalanceValues);
     } catch (err) {
@@ -168,66 +226,65 @@ const transfer = async (to_user, from_user, amount, client) => {
     }
 }
 
-async function executeTransaction(client) {
+async function executeTransactions(client, limit = 10) {
     try {
-        const transactions = await fetchOldestTransactions(client);
+        const transactions = await fetchOldestTransactions(client, limit);
 
         // Return If No New Transactions to Process
         if(!transactions || transactions.length === 0) {
-            console.log('No New Transactions to Process..');
+            console.log('No new transactions to process');
             return;
         }
 
         for (const transaction of transactions) {
             const { type, from_user, to_user, amount } = transaction;
 
-            if (type === 'deposit') {
+            if (type === 'DEPOSIT') {
+                await updateTransactionStatus(transaction.id, 'PROCESSING', client);
+                await depositAmount(to_user, amount, client);
+                await updateTransactionStatus(transaction.id, 'COMPLETED', client);
 
-                await updateTransactionStatus(transaction.transaction_id, 'in-process', client);
-                await deposit(to_user, amount, client);
-                await updateTransactionStatus(transaction.transaction_id, 'complete', client);
+            } else if (type === 'WITHDRAW') {
+                // Transfer Transaction
+                await updateTransactionStatus(transaction.id, 'PROCESSING', client);
 
-            } else if (type === 'withdraw') {
                 // Check if user has sufficient balance
                 const isSufficientBalance = await checkBalance(from_user, amount, client);
                 if(!isSufficientBalance) {
                     // Invalid Transaction
-                    await updateTransactionStatus(transaction.transaction_id, 'invalid', client);
+                    await updateTransactionStatus(transaction.id, 'FAILED', client);
                     continue;
                 }
 
-                await withdraw(from_user, amount, client);
-                await updateTransactionStatus(transaction.transaction_id, 'complete', client);
+                await withdrawAmount(from_user, amount, client);
+                await updateTransactionStatus(transaction.id, 'COMPLETED', client);
             } else {
                 // Transfer Transaction
-                await updateTransactionStatus(transaction.transaction_id, 'in-process', client);
+                await updateTransactionStatus(transaction.id, 'PROCESSING', client);
 
                 // Check if user has sufficient balance
                 const isSufficientBalance = await checkBalance(from_user, amount, client);
                 if(!isSufficientBalance) {
                     // Invalid Transaction
-                    await updateTransactionStatus(transaction.transaction_id, 'invalid', client);
+                    await updateTransactionStatus(transaction.id, 'FAILED', client);
                     continue;
                 }
 
-                await transfer(to_user, from_user, amount, client);
-                await updateTransactionStatus(transaction.transaction_id, 'complete', client);
+                await transferAmount(to_user, from_user, amount, client);
+                await updateTransactionStatus(transaction.id, 'COMPLETED', client);
             }
         }
-
-        // Release the client back to the pool
-        // client.release();
     } catch (err) {
-        console.error('Error while completing transaction: ', err);
+        console.error('Error while completing transaction: ', err.message);
         throw err;
     }
 }
 
 module.exports = {
-    depositAmount,
-    withdrawAmount,
-    transferAmount,
+    depositTransaction,
+    withdrawTransaction,
+    transferTransaction,
     retrieveTransactions,
-    executeTransaction
+    executeTransactions
 }
 

@@ -24,7 +24,7 @@ const checkUniqueUsername = async (req, res, next) => {
     }
 };
 
-// List users
+// List Users
 router.get('/', async (req, res) => {
    try {
        const query = 'SELECT username FROM users';

@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-const {executeTransaction} = require("./utils/transaction");
+const {executeTransactions} = require("./utils/transaction");
 const pool = require("./db/postgresPool");
 const {sendEmails} = require("./utils/mail");
 dotenv.config();
@@ -47,8 +47,8 @@ const startTransactionProcessing = async () => {
         const fetchAndProcessOldestTransactions = async () => {
             console.log('Fetching and processing transactions...');
 
-            await executeTransaction(client);
-            console.log('Transaction Exit')
+            await executeTransactions(client);
+            console.log('Transactions processing complete\n');
         };
 
         // Call the function initially to start the process.
@@ -70,7 +70,7 @@ const startEmailSending = async () => {
         const fetchAndSendOldestMails = async () => {
             console.log('Sending emails..');
             await sendEmails(client, limit);
-            console.log('Email sending exit.');
+            console.log('Email sending complete.\n');
         }
 
         await fetchAndSendOldestMails();
@@ -86,10 +86,10 @@ const startServer = async () => {
 
     if (process.env.APP === 'api') {
         apiServer();
-    } else if(process.env.APP === 'transactions') {
+    } else if(process.env.APP === 'batch-processing') {
         console.log('Starting transaction processing..');
         await startTransactionProcessing();
-    } else if(process.env.APP === 'emails') {
+
         console.log('Starting to send emails');
         await startEmailSending();
     }

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS emails (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS process (
+CREATE TABLE IF NOT EXISTS processes (
     id SERIAL PRIMARY KEY,
     transaction_id INT REFERENCES transactions(id),
     email_id INT REFERENCES emails(id),

@@ -1,14 +1,14 @@
 const jwt = require("../utils/jwt");
 
 const authenticate = async (req, res, next)=> {
-    const authHeader = req.headers.authorization;
-    const [bearer, token] = authHeader.split(' ');
-
-    if (bearer !== 'Bearer' && !token) {
-        return res.status(401).json({error: 'Invalid Authentication Format'});
-    }
-
     try {
+        const authHeader = req.headers.authorization;
+        const [bearer, token] = authHeader.split(' ');
+
+        if (bearer !== 'Bearer' && !token) {
+            return res.status(401).json({error: 'Invalid Authentication Format'});
+        }
+
         const user = await jwt.verify(token);
         if (!user) return res.status(404).json({error: 'User Not Found'});
 
