@@ -173,19 +173,19 @@ const populateTableWithTransactions = (transactions = []) => {
         tr.appendChild(tdType);
 
         const tdFromUser = document.createElement('td');
-        const fromUserText = document.createTextNode(transaction.from_username || '-');
+        const fromUserText = document.createTextNode(transaction.from_user || '-');
         tdFromUser.appendChild(fromUserText);
         tr.appendChild(tdFromUser);
 
         const tdToUser = document.createElement('td');
-        const toUserText = document.createTextNode(transaction.to_username || '-');
+        const toUserText = document.createTextNode(transaction.to_user || '-');
         tdToUser.appendChild(toUserText);
         tr.appendChild(tdToUser);
 
         const tdAmount = document.createElement('td');
         const amountText = document.createTextNode(transaction.amount);
         tdAmount.appendChild(amountText);
-        setAmountTextColor(tdAmount, transaction.type, transaction.to_username);
+        setAmountTextColor(tdAmount, transaction.type, transaction.to_user);
         tr.appendChild(tdAmount);
 
         const tdStatus = document.createElement('td');

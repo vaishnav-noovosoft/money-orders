@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 const {executeTransactions} = require("./utils/transaction");
 const pool = require("./db/postgresPool");
 const {sendEmails} = require("./utils/mail");
+const {scheduleProcessExecution} = require("./utils/processes");
 dotenv.config();
 
 const apiServer = () => {
@@ -40,46 +41,28 @@ const apiServer = () => {
     });
 }
 
-const startTransactionProcessing = async () => {
+const startBatchProcessing = async () => {
     try {
         const client = await pool.connect();
+        const jobLimit = 10;
 
-        const fetchAndProcessOldestTransactions = async () => {
-            console.log('Fetching and processing transactions...');
+        const fetchAndProcessOldestJobs = async () => {
+            console.log('Fetching and processing jobs...');
 
-            await executeTransactions(client);
-            console.log('Transactions processing complete\n');
+            await scheduleProcessExecution(client, jobLimit);
+            console.log('Job processing complete\n');
         };
 
         // Call the function initially to start the process.
-        await fetchAndProcessOldestTransactions();
+        await fetchAndProcessOldestJobs();
 
         // Use setInterval to repeat the process every 10 seconds.
-        setInterval(fetchAndProcessOldestTransactions, 10000); // 10000 milliseconds = 10 seconds
+        setInterval(fetchAndProcessOldestJobs, 10000); // 10000 milliseconds = 10 seconds
     }
     catch (err) {
         console.error('Error processing transactions: ', err);
     }
 };
-
-const startEmailSending = async () => {
-    try {
-        const limit = 10;
-        const client = await pool.connect();
-
-        const fetchAndSendOldestMails = async () => {
-            console.log('Sending emails..');
-            await sendEmails(client, limit);
-            console.log('Email sending complete.\n');
-        }
-
-        await fetchAndSendOldestMails();
-        setInterval(fetchAndSendOldestMails, 10000);
-    }
-    catch (err) {
-        console.error('Error sending emails: ', err);
-    }
-}
 
 const startServer = async () => {
     console.log(process.env.APP);
@@ -87,11 +70,8 @@ const startServer = async () => {
     if (process.env.APP === 'api') {
         apiServer();
     } else if(process.env.APP === 'batch-processing') {
-        console.log('Starting transaction processing..');
-        await startTransactionProcessing();
-
-        console.log('Starting to send emails');
-        await startEmailSending();
+        console.log('Starting job processing..');
+        await startBatchProcessing();
     }
 };
 

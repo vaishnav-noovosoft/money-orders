@@ -24,7 +24,7 @@ const depositAmount = async (client, userId, amount) => {
 }
 
 const withdrawAmount = async (client, userId, amount) => {
-    if(!await isSufficientBalance(client, userId, amount)) return null;
+    if(!await isSufficientBalance(client, userId, amount)) throw 'In-Sufficient balance';
 
     const query = `
       UPDATE users
@@ -39,18 +39,23 @@ const withdrawAmount = async (client, userId, amount) => {
 
 const transferAmount = async (client, fromUserId, toUserId, amount) => {
     const result = await withdrawAmount(client, fromUserId, amount);
-    if(!result) return null;
+    if(!result) throw 'Error while transaction';
     return await depositAmount(client, toUserId, amount);
 }
 
 const executeTransaction = async (client, {transactionType, fromUserId, toUserId, amount}) => {
-    if(transactionType === 'DEPOSIT') {
-        await depositAmount(client, toUserId, amount);
-    } else if(transactionType === 'WITHDRAW') {
-        await withdrawAmount(client, fromUserId, amount);
-    }
-    else if(transactionType === 'TRANSFER') {
-        await transferAmount(client, fromUserId, toUserId, amount);
+    try {
+        if(transactionType === 'DEPOSIT') {
+            await depositAmount(client, toUserId, amount);
+        } else if(transactionType === 'WITHDRAW') {
+            await withdrawAmount(client, fromUserId, amount);
+        }
+        else if(transactionType === 'TRANSFER') {
+            await transferAmount(client, fromUserId, toUserId, amount);
+        }
+        return {"message": "OK"};
+    } catch (err) {
+        return {"error": err.message};
     }
 }
 

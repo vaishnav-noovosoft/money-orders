@@ -26,7 +26,6 @@ router.post('/', adminOnly, async (req, res) => {
     const {type} = req.query;
     try {
         const amount = req.body.amount;
-        console.log(amount, typeof amount, Number.isNaN (amount));
         if (typeof amount !== 'number' || Number.isNaN (amount) ) {
             return res.status(400).json({error: 'Amount is not valid'})
         }

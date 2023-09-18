@@ -58,7 +58,7 @@ const updateProcessStatus = async (client, processId = 0, status = '') => {
         query = `
           UPDATE processes
           SET status = $1, completed_at = $2
-          WHERE id = $3;
+          WHERE id = $3
           RETURNING *;
         `;
         const completed_at = new Date();
@@ -67,7 +67,7 @@ const updateProcessStatus = async (client, processId = 0, status = '') => {
         query = `
           UPDATE processes
           SET status = $1
-          WHERE id = $2;
+          WHERE id = $2
           RETURNING *;
         `;
         values = [status, processId];
@@ -87,11 +87,12 @@ const retrieveOldestPending = async (client, limit) => {
         transaction_from_user AS from_user, 
         transaction_to_user AS to_user,
         transaction_amount AS amount,
-        email_receiver AS receiver
+        email_receiver AS receiver,
+        email_transaction_count AS transaction_count
       FROM processes
       WHERE status = $1
       ORDER BY created_at
-      LIMIT $2
+      LIMIT $2;
     `;
     const values = ['PENDING', limit];
     const result = await client.query(query, values);
@@ -99,22 +100,44 @@ const retrieveOldestPending = async (client, limit) => {
 }
 
 const scheduleProcessExecution = async (client, jobLimit = 10) => {
-    const processes = await retrieveOldestPending(client, jobLimit);
+    try {
+        const processes = await retrieveOldestPending(client, jobLimit);
 
-    for(const job of processes) {
-        const processType = job.type;
+        for(const job of processes) {
+            const processType = job.type;
 
-        if(processType === 'TRANSACTION') {
-            await executeTransaction(client, {
-                transactionType: job.transaction_type,
-                fromUserId: job.from_user,
-                toUserId: job.to_user,
-                amount: job.amount
-            });
-        } else if(processType === 'EMAIL') {
-            const userObject = await getUserById(job.email_receiver);
-            await sendEmail(client, userObject, job.email_transaction_count);
+            if(processType === 'TRANSACTION') {
+                await updateProcessStatus(client, job.id, 'PROCESSING');
+                executeTransaction(client, {
+                    transactionType: job.transaction_type,
+                    fromUserId: job.from_user,
+                    toUserId: job.to_user,
+                    amount: job.amount
+                }).then(async (data) => {
+                    if(data.error) {
+                        console.error('Transaction processing failed with message: ', data.error);
+                        await updateProcessStatus(client, job.id, 'FAILED');
+                    } else {
+                        await updateProcessStatus(client, job.id, 'COMPLETED');
+                    }
+                });
+
+            } else if(processType === 'EMAIL') {
+                const userObject = await getUserById(job.receiver, client);
+                sendEmail(client, userObject, job.transaction_count)
+                    .then(async (data) => {
+                        if(data.error) {
+                            console.error('Email sending failed with message: ', data.error);
+                            await updateProcessStatus(client, job.id, 'FAILED');
+;                        } else {
+                            await updateProcessStatus(client, job.id, 'COMPLETED');
+                        }
+                    });
+            }
         }
+    }
+    catch (err) {
+        console.error('Error processing jobs: ', err);
     }
 }
 

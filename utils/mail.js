@@ -91,7 +91,7 @@ const sendEmail = async (client, userObject, transactionLimit = 10) => {
         return { message: info.response };
     }
     catch (err) {
-        throw err;
+        return { error: err.message };
     }
 }
 
