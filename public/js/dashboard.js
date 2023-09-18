@@ -1,4 +1,4 @@
-import {getHeader, HOST, setUser, getUser} from './clientConfig.js';
+import {getHeader, HOST, setUser, getUser} from './client-config.js';
 
 const emailButton = document.getElementById('btn-send-email');
 
@@ -240,10 +240,11 @@ const checkTokenValidity = () => {
                     emailButton.remove();
                     removeElementByClassName("email-history");
 
-                    await listUsers('toUserDeposit');
-                    await listUsers('fromUserWithdraw');
-                    await listUsers('toUserTransfer');
-                    await listUsers('fromUserTransfer');
+                    const {users} = await retrieveUsersFromDB();
+                    await listUsers('toUserDeposit', users);
+                    await listUsers('fromUserWithdraw', users);
+                    await listUsers('toUserTransfer', users);
+                    await listUsers('fromUserTransfer', users);
                     await fetchTransactions();
                 }
             }
@@ -282,9 +283,8 @@ const retrieveUsersFromDB = async () => {
     }
 }
 
-const listUsers = async (element) => {
+const listUsers = async (element, users) => {
     const usersSelect = document.getElementById(element);
-    const {users} = await retrieveUsersFromDB();
 
     users.forEach((user => {
         const option = document.createElement('option');
@@ -342,7 +342,7 @@ withdrawForm.addEventListener('submit', (event) => {
             headers: getHeader(),
             body: JSON.stringify({
                 "fromUser": fromUser,
-                "amount": amount
+                "amount": parseFloat(amount)
             })
         })
             .then(res => res.json())
@@ -379,7 +379,7 @@ transferForm.addEventListener('submit', (event) => {
             body: JSON.stringify({
                 "fromUser": fromUser,
                 "toUser": toUser,
-                "amount": amount
+                "amount": parseFloat(amount)
             })
         })
             .then(res => res.json())

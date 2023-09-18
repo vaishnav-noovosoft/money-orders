@@ -22,11 +22,11 @@ const apiServer = () => {
     });
 
     // Mount routes
-    const userRoutes = require('./routes/userRoutes');
-    const authRoutes = require('./routes/authRoutes');
-    const transactionRoutes= require('./routes/transactionRoutes');
-    const siteRoutes = require('./routes/siteRoutes');
-    const mailRoutes = require('./routes/mailRoutes');
+    const userRoutes = require('./routes/user-routes');
+    const authRoutes = require('./routes/auth-routes');
+    const transactionRoutes= require('./routes/transaction-routes');
+    const siteRoutes = require('./routes/site-routes');
+    const mailRoutes = require('./routes/mail-routes');
 
     app.use('/api/users', userRoutes);
     app.use('/api/auth', authRoutes);

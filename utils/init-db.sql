@@ -8,28 +8,21 @@ CREATE TABLE IF NOT EXISTS users (
     balance FLOAT DEFAULT 0
 );
 
--- Create Transaction Table
-CREATE TABLE IF NOT EXISTS transactions (
-    id SERIAL PRIMARY KEY,
-    "type" VARCHAR(255) NOT NULL,
-    from_user INT REFERENCES users(id),
-    to_user INT REFERENCES users(id),
-    amount FLOAT,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Create Email Table
-CREATE TABLE IF NOT EXISTS emails (
-    id SERIAL PRIMARY KEY,
-    receiver INT REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
 CREATE TABLE IF NOT EXISTS processes (
     id SERIAL PRIMARY KEY,
-    transaction_id INT REFERENCES transactions(id),
-    email_id INT REFERENCES emails(id),
     status VARCHAR(255) DEFAULT 'PENDING',
+    type VARCHAR(255) NOT NULL,
+
+    -- Transactions
+    transaction_type VARCHAR(255) DEFAULT NULL,
+    transaction_from_user INT REFERENCES users(id) DEFAULT NULL,
+    transaction_to_user INT REFERENCES users(id) DEFAULT NULL,
+    transaction_amount FLOAT DEFAULT NULL,
+
+    -- Emails
+    email_receiver INT REFERENCES users(id) DEFAULT NULL,
+    email_transaction_count INT DEFAULT NULL,
+
     created_at TIMESTAMP DEFAULT NOW(),
     completed_at TIMESTAMP
 );

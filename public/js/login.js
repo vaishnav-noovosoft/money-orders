@@ -1,4 +1,4 @@
-import { HOST } from "./clientConfig.js";
+import { HOST } from "./client-config.js";
 
 const authenticate = (username, password) => {
     try {
