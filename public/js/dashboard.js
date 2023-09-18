@@ -34,6 +34,25 @@ const setAmountTextColor = (element, transactionType, toUser = '') => {
         }
     }
 }
+const fetchUpdatedEmails = async () => {
+    const limit = 10;
+    try {
+        fetch(HOST + `/api/mail?limit=${limit}`, {
+            method: 'GET',
+            headers: getHeader()
+        })
+            .then((res) => res.json())
+            .then(data => {
+                if (data.error)
+                    console.error(data);
+                else {
+                    populateTableWithUpdatedEmails(data.emails);
+                }
+            });
+    } catch (err) {
+        console.error('Error while retrieving emails Transaction', err);
+    }
+}
 
 const sendEmailButton = () => {
     const limit = 15;
@@ -58,8 +77,9 @@ const sendEmailButton = () => {
                         sendEmailBtn.innerHTML = "Send Email";
                     }, 4000);
 
-                    removeEmails();
-                    await fetchEmails();
+
+                    await fetchUpdatedEmails();
+
                 }
             })
     } catch (err) {
@@ -77,22 +97,22 @@ const getEmailStatus = (status) => {
 }
 
 // Fetch Emails
-const populateTableWithEmails = (emails = []) => {
-    const tbody = document.getElementById('email-table-body');
-
-    emails.forEach((email) => {
+function emailElements(email,tbody,isUpdated){
         const tr = document.createElement('tr');
         const emailCreatedAt = new Date(email.created_at);
+
 
         const tdFromUser = document.createElement('td');
         const fromUserText = document.createTextNode(emailCreatedAt.toLocaleDateString('en-IN').toUpperCase());
         tdFromUser.appendChild(fromUserText);
         tr.appendChild(tdFromUser);
 
+
         const tdToUser = document.createElement('td');
         const toUserText = document.createTextNode(emailCreatedAt.toLocaleTimeString('en-IN').toUpperCase());
         tdToUser.appendChild(toUserText);
         tr.appendChild(tdToUser);
+
 
         const tdAmount = document.createElement('td');
         const amountText = document.createTextNode(getEmailStatus(email.status) || '-');
@@ -100,7 +120,21 @@ const populateTableWithEmails = (emails = []) => {
         setStatusTextColor(tdAmount, email.status);
         tr.appendChild(tdAmount);
 
-        tbody.appendChild(tr);
+
+        if(isUpdated === false){
+            tbody.appendChild(tr);
+            console.log('working');
+        }
+        else if(isUpdated === true){
+            tbody.prepend(tr);
+        }
+}
+
+const populateTableWithEmails = (emails = []) => {
+    const tbody = document.getElementById('email-table-body');
+    emails.forEach((email) => {
+
+        emailElements(email, tbody, false);
     });
 }
 
@@ -116,6 +150,7 @@ const fetchEmails = async () => {
                 if (data.error)
                     console.error(data);
                 else {
+                    console.log(data.emails);
                     populateTableWithEmails(data.emails);
                 }
             });
@@ -131,12 +166,25 @@ const removeEmails = () => {
         tbody.removeChild(tbody.firstChild);
     }
 }
+const populateTableWithUpdatedEmails = (emails = []) => {
+    const email = emails[0];
+    const tbody = document.getElementById('email-table-body');
+    emailElements(email,tbody,true);
+}
 
 // Fetch and Update Emails every 10 seconds
 const updateEmailTable = () => {
     setInterval(async () => {
-        removeEmails();
-        await fetchEmails();
+        const table = document.getElementById('email-table-body'); // Replace 'myTable' with your table's ID
+        if (table.rows.length > 0) {
+            // Use the deleteRow method to remove the first row (index 0)
+            table.deleteRow(0);
+        }
+        await fetchUpdatedEmails();
+        if (table.rows.length > 9) {
+            // Use the deleteRow method to remove the first row (index 0)
+            table.deleteRow(10);
+        }
         console.log('Updated emails');
     }, 10000);
 }
