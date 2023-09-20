@@ -3,7 +3,7 @@ import {getHeader, HOST, setUser, getUser} from './client-config.js';
 const emailButton = document.getElementById('btn-send-email');
 
 let lastTimestamp = null;
-
+let transactionId=[];
 const setStatusTextColor = (element, status) => {
     if(status === 'PENDING') element.className = 'text-yellow';
     else if(status === 'PROCESSING') element.className = 'text-blue';
@@ -196,7 +196,7 @@ const fetchTransactions = async () => {
 
     let URI = HOST + `/api/transactions?limit=${limit}`;
     if(lastTimestamp)
-        URI += `&lastTimestamp=${lastTimestamp}`;
+        URI += `&lastTimestamp=${lastTimestamp}&transactionIds=${transactionId}`;
     console.log(URI);
 
     try {
@@ -210,6 +210,12 @@ const fetchTransactions = async () => {
                     console.error(data);
                 else {
                     lastTimestamp = data.transactions[0].created_at;
+
+                    const filteredTransactions = data.transactions.filter(transaction => {
+                        return transaction.status !== 'FAILED' && transaction.status !== 'COMPLETED';
+                    });
+                    transactionId = filteredTransactions.map(transaction => transaction.id);
+
                     populateTableWithTransactions(data.transactions);
                 }
             });
@@ -217,7 +223,28 @@ const fetchTransactions = async () => {
         console.error('Error while retrieving transactions', err);
     }
 }
-
+// const sendTransactionIdToBackend = (transactionId) => {
+//     try {
+//         // Modify the URL and payload as needed to send the ID to the backend
+//         fetch(HOST + `/api/send-transaction-id`, {
+//             method: "POST",
+//             headers: getHeader(),
+//             body: JSON.stringify({
+//                 transactionId: transactionId
+//             })
+//         })
+//             .then((res) => res.json())
+//             .then(data => {
+//                 if (data.error) {
+//                     console.error('Error while Processing Transaction Id', data.error);
+//                 } else {
+//                     console.log('Transaction ID Processed Successfully');
+//                 }
+//             });
+//     } catch (err) {
+//         console.error('Error in fetching transaction id', err);
+//     }
+// }
 const populateTableWithTransactions = (transactions = []) => {
     const tbody = document.getElementById('transaction-table-body');
 
@@ -266,6 +293,7 @@ const removeTransactions = () => {
 // Fetch and Update Transactions every 10 seconds
 setInterval(async () => {
     removeTransactions();
+
     await fetchTransactions();
     console.log('Updated transactions');
 }, 10000);
