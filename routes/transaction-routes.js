@@ -14,7 +14,9 @@ router.get('/', async (req, res) => {
     if (!limit) return res.status(400).json({error: 'Missing limit parameter'});
 
     try {
-        const transactions = await retrieveUserTransactions(client, req.user, limit);
+        let transactions = null;
+        if(!lastTimestamp) transactions = await retrieveUserTransactions(client, req.user, limit);
+
         return res.status(200).json({transactions});
     } catch (err) {
         console.error('Error retrieving transactions', err);
