@@ -1,23 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const {
-    depositTransaction,
-    withdrawTransaction,
-    transferTransaction,
-    retrieveTransactions,
-} = require("../utils/transaction");
 const {getUser} = require('../utils/users');
 const {authenticate, adminOnly} = require("./middlewares");
+const {retrieveUserTransactions} = require("../utils/transaction");
+const client = require('../db/postgres');
+const {createProcess} = require("../utils/processes");
 
 router.use(authenticate);
 
 router.get('/', async (req, res) => {
-    const limit = req.query.limit;
+    const {limit, lastTimestamp} = req.query;
 
     if (!limit) return res.status(400).json({error: 'Missing limit parameter'});
 
     try {
-        const transactions = await retrieveTransactions(req.user, limit);
+        let transactions = null;
+        if(!lastTimestamp) transactions = await retrieveUserTransactions(client, req.user, limit);
+        else transactions = await retrieveUserTransactions(client, req.user, limit);
+
         return res.status(200).json({transactions});
     } catch (err) {
         console.error('Error retrieving transactions', err);
@@ -27,35 +27,43 @@ router.get('/', async (req, res) => {
 
 router.post('/', adminOnly, async (req, res) => {
     const {type} = req.query;
-
     try {
-        if (type === 'deposit') {
-            const {toUser, amount} = req.body;
+        const amount = req.body.amount;
+        if (typeof amount !== 'number' || Number.isNaN (amount) ) {
+            return res.status(400).json({error: 'Amount is not valid'})
+        }
 
-            if (typeof amount !== 'number' || Number.isNaN ( amount ) ) {
-                res.status(400).json({error: 'Amount is not valid'})
-            }
+        if (type === 'deposit') {
+            const {toUser} = req.body;
 
             if (!toUser || !amount) return res.status(400).json({error: 'Missing toUser or amount'});
 
             const user = await getUser(toUser);
             if (!user) return res.status(404).json({error: 'User not found'});
 
-            const depositTransactionResult = await depositTransaction(user.id, amount);
+            const depositTransactionResult = await createProcess({
+                status: 'PENDING',
+                processType: 'TRANSACTION',
+                transaction: {type: 'DEPOSIT', to_user: user.id, amount: amount}
+            });
             return res.status(201).json({"transaction": depositTransactionResult});
         } else if (type === 'withdraw') {
-            const {fromUser, amount} = req.body;
+            const {fromUser} = req.body;
             if (!fromUser || !amount) return res.status(400).json({error: 'Missing fromUser or amount'});
 
             const user = await getUser(fromUser);
             if (!user) return res.status(404).json({error: 'User not found'});
 
-            const withdrawTransactionResult = await withdrawTransaction(user.id, amount);
-            if (!withdrawTransaction) return res.status(500).json({error: 'Error in creating transaction'});
+            const withdrawTransactionResult = await createProcess({
+                status: 'PENDING',
+                processType: 'TRANSACTION',
+                transaction: {type: 'WITHDRAW', from_user: user.id, amount: amount}
+            });
+            if (!withdrawTransactionResult) return res.status(500).json({error: 'Error in creating transaction'});
 
             return res.status(201).json({"transaction": withdrawTransactionResult});
         } else if (type === 'transfer') {
-            const {fromUser, toUser, amount} = req.body;
+            const {fromUser, toUser} = req.body;
             if (!fromUser || !toUser || !amount) return res.status(401).json({error: 'Missing required data'});
 
             if (fromUser === toUser) return res.status(400).json({error: 'Invalid parameters'});
@@ -66,8 +74,13 @@ router.post('/', adminOnly, async (req, res) => {
             const toUserObject = await getUser(toUser);
             if (!toUserObject) return res.status(404).json({error: 'toUser not found'});
 
-            const transferTransactionResult = await transferTransaction(fromUserObject.id, toUserObject.id, amount);
-            if (!transferTransaction) return res.status(500).json({error: 'Error while creating transaction'});
+            const transferTransactionResult = await createProcess({
+                status: 'PENDING',
+                processType: 'TRANSACTION',
+                transaction: {type: 'TRANSFER', from_user: fromUserObject.id, to_user: toUserObject.id, amount: amount}
+            });
+
+            if (!transferTransactionResult) return res.status(500).json({error: 'Error while creating transaction'});
 
             return res.status(201).json({"transaction": transferTransactionResult});
         } else {

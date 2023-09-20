@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const {saveEmail, listEmails} = require('../utils/mail');
+const {retrieveMails} = require('../utils/mail');
 const {authenticate} = require('../routes/middlewares');
+const client = require('../db/postgres');
+const {createProcess} = require("../utils/processes");
 
 router.use(authenticate);
 
@@ -13,7 +15,7 @@ router.get('/', async (req, res) => {
 
     try {
         // Retrieve emails of user
-        const result= await listEmails(user.id, limit);
+        const result= await retrieveMails(client, user.id, limit);
         return res.status(200).json({ emails: result });
     } catch (err) {
         console.error('Error retrieving emails: ', err);
@@ -28,19 +30,15 @@ router.post('/transaction-history', async (req, res) => {
         const limit = req.query.limit;
         if (!limit) return res.status(400).json({ error: 'Missing limit parameter' });
 
-        await saveEmail({ receiver: user.id })
-            .then((data)=> {
-                if(data.error) {
-                    console.error('Error sending email: ', data.error);
-                    res.status(500).json({ error: 'Error sending email' });
-                }
-                else {
-                    res.status(200).json({ message: data.message });
-                }
-            });
+        const email = await createProcess({
+            status: 'PENDING',
+            processType: 'EMAIL',
+            email: { receiver: user.id, transactionCount: limit }
+        });
+        return res.status(201).json({ email: email });
     } catch (err) {
         console.error('Error sending email: ', err);
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: 'Error while sending mail' });
     }
 });
 

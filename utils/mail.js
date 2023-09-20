@@ -1,11 +1,10 @@
 const smtpTransport = require("nodemailer-smtp-transport");
 const nodemailer = require("nodemailer");
+
 const db = require('../db/postgres');
 const pool = require('../db/postgresPool');
-const {retrieveTransactions} = require("./transaction");
-const {startSession} = require("pg/lib/crypto/sasl");
-const {getUserById} = require("./users");
 
+const {retrieveUserTransactions} = require("./transaction");
 
 const mailhogTransport = smtpTransport({
     host: 'localhost',
@@ -14,12 +13,12 @@ const mailhogTransport = smtpTransport({
 
 const transporter = nodemailer.createTransport(mailhogTransport);
 
-const sendEmail = async (user, limit = 10) => {
+const sendEmail = async (client, userObject, transactionLimit = 10) => {
     try {
         // Verify the transporter configuration
         await transporter.verify();
 
-        const latestTransactions = await retrieveTransactions(user, limit);
+        const latestTransactions = await retrieveUserTransactions(client, userObject, transactionLimit);
         if (!latestTransactions || latestTransactions.length === 0) {
             return;
         }
@@ -74,7 +73,7 @@ const sendEmail = async (user, limit = 10) => {
                 </style>
               </head>
               <body>
-                <h1>Transaction History for ${user.username}</h1>
+                <h1>Transaction History for ${userObject.username}</h1>
                 ${transactionTable}
                 <p>Thank you for using our service.</p>
               </body>
@@ -83,8 +82,8 @@ const sendEmail = async (user, limit = 10) => {
 
         const mailOptions = {
             from: process.env.ADMIN_EMAIL,
-            to: user.email,
-            subject: `Transaction History of ${user.username}`,
+            to: userObject.email,
+            subject: `Transaction History of ${userObject.username}`,
             html: emailHtml
         }
 
@@ -92,141 +91,29 @@ const sendEmail = async (user, limit = 10) => {
         return { message: info.response };
     }
     catch (err) {
-        throw err;
+        return { error: err.message };
     }
 }
 
-const fetchOldestEmails = async (client, limit = 10) => {
-    try {
-        const query = `
-            SELECT e.*, u.email AS receiver_email, p.status
-            FROM emails e
-            INNER JOIN users u ON e.receiver = u.id
-            INNER JOIN processes p ON e.id = p.email_id
-            WHERE p.status = 'PENDING'
-            ORDER BY e.created_at ASC
-            LIMIT $1;
-        `;
-        const values = [limit];
-        const result = await client.query(query, values);
-        return result.rows;
-    } catch (err) {
-        throw err;
-    }
-};
-
-const updateEmailProcessStatus = async (client, status = 'PROCESSING', emailId) => {
-    const isComplete = status === 'COMPLETED'
-    const inCompleteEmailQuery = `
-      UPDATE processes
-      SET status = $1
-      WHERE email_id = $2
-      RETURNING *;
+const retrieveMails = async (client, userId, mailLimit) => {
+    const query = `
+      SELECT
+        id,
+        status,
+        email_receiver AS receiver,
+        email_transaction_count AS transactionCount,
+        created_at
+      FROM processes
+      WHERE type = $1 AND email_receiver = $2
+      ORDER BY created_at DESC
+      LIMIT $3;
     `;
-    const inCompleteEmailValues = [status, emailId];
-
-    const completeEmailQuery = `
-      UPDATE processes
-      SET status = $1, completed_at = $2
-      WHERE email_id = $3
-      RETURNING *
-    `;
-    const completeEmailValues = [status, new Date().toUTCString(), emailId];
-
-    const result = isComplete ? await client.query(completeEmailQuery, completeEmailValues) : await client.query(inCompleteEmailQuery, inCompleteEmailValues);
-    return result.rows.length !== 0;
-}
-
-const sendEmails = async (client, limit = 10) => {
-    try {
-        const mails = await fetchOldestEmails(client, limit);
-        if(!mails || mails.length === 0) {
-            console.log('No new mails to process..');
-            return;
-        }
-
-        for(const mail of mails) {
-            const { receiver } = mail;
-            const userObject = await getUserById(receiver, client);
-
-            if(!userObject) {
-                console.error('User not found to send email');
-                return;
-            }
-
-            // Put email process in processing state
-            await updateEmailProcessStatus(client, 'PROCESSING', mail.id);
-            sendEmail(userObject, limit)
-                .then(async data => {
-                    if(data.error) await updateEmailProcessStatus(client, 'FAILED', mail.id);
-                    else await updateEmailProcessStatus(client, 'COMPLETED', mail.id);
-                })
-                .catch(async err => {
-                    await updateEmailProcessStatus(client, 'FAILED', mail.id);
-                    console.error('Error sending email', err);
-                });
-        }
-    }
-    catch (err) {
-        console.error('Error in sending emails process');
-        throw err;
-    }
-}
-
-const addEmailInProcess = async (client, emailId) => {
-    const query = `INSERT INTO processes (email_id) VALUES ($1) RETURNING *`;
-    const values = [emailId];
+    const values = ['EMAIL', userId, mailLimit];
     const result = await client.query(query, values);
-
-    if(result.rows.length === 0) console.error('Error adding email into processes');
-}
-
-const saveEmail = async ({ receiver })=> {
-    try {
-        const client = await pool.connect();
-        const query = `
-            INSERT INTO emails (receiver)
-            VALUES ($1)
-            RETURNING *;
-        `;
-        const values= [receiver];
-        const result = await client.query(query, values);
-
-        if(result.rows.length === 0) return { 'error': 'Error sending mail' };
-        const email = result.rows[0];
-
-        // Add email for scheduling in process
-        await addEmailInProcess(client, email.id);
-
-        return { 'message': 'Email sent successfully' };
-    }
-    catch (err) {
-        throw err;
-    }
-};
-
-const listEmails = async (receiverUserId, limit= 10) => {
-    try {
-        const query = `
-          SELECT e.*, p.status
-          FROM emails e
-          INNER JOIN processes p ON p.email_id = e.id
-          WHERE receiver = $1 
-          ORDER BY created_at DESC
-          LIMIT $2;
-        `;
-        const values = [receiverUserId, limit];
-        const result = await db.query(query, values);
-
-        return result.rows;
-    }
-    catch (err) {
-        throw err;
-    }
+    return result.rows;
 }
 
 module.exports = {
-    saveEmail,
-    listEmails,
-    sendEmails
+    sendEmail,
+    retrieveMails
 }

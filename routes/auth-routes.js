@@ -11,7 +11,6 @@ router.get('/login', async (req, res) => {
    return res.sendFile(filePath);
 });
 
-
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
