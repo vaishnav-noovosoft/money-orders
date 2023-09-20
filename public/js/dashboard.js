@@ -1,6 +1,7 @@
 import {getHeader, HOST, setUser, getUser} from './client-config.js';
 
 const emailButton = document.getElementById('btn-send-email');
+
 let lastTimestamp = null;
 
 const setStatusTextColor = (element, status) => {
