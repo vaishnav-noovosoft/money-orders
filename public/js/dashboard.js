@@ -223,28 +223,7 @@ const fetchTransactions = async () => {
         console.error('Error while retrieving transactions', err);
     }
 }
-// const sendTransactionIdToBackend = (transactionId) => {
-//     try {
-//         // Modify the URL and payload as needed to send the ID to the backend
-//         fetch(HOST + `/api/send-transaction-id`, {
-//             method: "POST",
-//             headers: getHeader(),
-//             body: JSON.stringify({
-//                 transactionId: transactionId
-//             })
-//         })
-//             .then((res) => res.json())
-//             .then(data => {
-//                 if (data.error) {
-//                     console.error('Error while Processing Transaction Id', data.error);
-//                 } else {
-//                     console.log('Transaction ID Processed Successfully');
-//                 }
-//             });
-//     } catch (err) {
-//         console.error('Error in fetching transaction id', err);
-//     }
-// }
+
 const populateTableWithTransactions = (transactions = []) => {
     const tbody = document.getElementById('transaction-table-body');
 

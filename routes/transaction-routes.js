@@ -6,10 +6,19 @@ const {retrieveUserTransactions} = require("../utils/transaction");
 const client = require('../db/postgres');
 const {createProcess} = require("../utils/processes");
 
+
 router.use(authenticate);
 
 router.get('/', async (req, res) => {
-    const {limit, lastTimestamp} = req.query;
+    const {limit, lastTimestamp,transactionIds} = req.query;
+    console.log(transactionIds);
+    if(transactionIds){
+        const transactionId=transactionIds.split(",");
+        console.log(transactionId);
+    }
+    else{
+        console.log('No transaction Id Received');
+    }
 
     if (!limit) return res.status(400).json({error: 'Missing limit parameter'});
 
