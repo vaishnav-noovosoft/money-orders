@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
     try {
         let transactions = null;
         if(!lastTimestamp) transactions = await retrieveUserTransactions(client, req.user, limit);
+        else transactions = await retrieveUserTransactions(client, req.user, limit);
 
         return res.status(200).json({transactions});
     } catch (err) {

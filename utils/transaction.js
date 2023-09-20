@@ -59,9 +59,12 @@ const executeTransaction = async (client, {transactionType, fromUserId, toUserId
     }
 }
 
-const retrieveUserTransactions = async (client, userObject, limit) => {
+const retrieveUserTransactions = async (client, userObject, limit, lastTimestamp) => {
     if (userObject.role === 'user') {
-        const query = `
+        let query;
+        let values;
+        if(!lastTimestamp) {
+            query = `
             SELECT
                 p.id,
                 p.status,
@@ -76,12 +79,35 @@ const retrieveUserTransactions = async (client, userObject, limit) => {
             WHERE p.type = $1 AND (p.transaction_from_user = $2 OR p.transaction_to_user = $2)
             ORDER BY p.created_at DESC
             LIMIT $3;
-        `;
-        const values = ['TRANSACTION', userObject.id, limit];
+            `;
+            values = ['TRANSACTION', userObject.id, limit];
+        } else {
+            query = `
+            SELECT
+                p.id,
+                p.status,
+                p.transaction_type AS type,
+                uf.username AS from_user,
+                ut.username AS to_user,
+                p.transaction_amount AS amount,
+                p.created_at
+            FROM processes p
+            LEFT JOIN users uf ON p.transaction_from_user = uf.id
+            LEFT JOIN users ut ON p.transaction_to_user = ut.id
+            WHERE p.type = $1 AND (p.transaction_from_user = $2 OR p.transaction_to_user = $2) AND created_at > $3
+            ORDER BY p.created_at DESC
+            LIMIT $4;
+            `;
+            console.log(lastTimestamp);
+            values = ['TRANSACTION', userObject.id, new Date(lastTimestamp), limit];
+        }
+
         const result = await client.query(query, values);
         return result.rows;
     } else if (userObject.role === 'admin') {
-        const query = `
+        let query, values;
+        if(!lastTimestamp) {
+            query = `
             SELECT
                 p.id,
                 p.status,
@@ -96,8 +122,28 @@ const retrieveUserTransactions = async (client, userObject, limit) => {
             WHERE p.type = $1
             ORDER BY p.created_at DESC
             LIMIT $2;
-        `;
-        const values = ['TRANSACTION', limit];
+            `;
+            values = ['TRANSACTION', limit];
+        } else {
+            query = `
+            SELECT
+                p.id,
+                p.status,
+                p.transaction_type AS type,
+                uf.username AS from_user,
+                ut.username AS to_user,
+                p.transaction_amount AS amount,
+                p.created_at
+            FROM processes p
+            LEFT JOIN users uf ON p.transaction_from_user = uf.id
+            LEFT JOIN users ut ON p.transaction_to_user = ut.id
+            WHERE p.type = $1 AND created_at > $2
+            ORDER BY p.created_at DESC
+            LIMIT $3;
+            `;
+            console.log(lastTimestamp);
+            values = ['TRANSACTION', new Date(lastTimestamp), limit];
+        }
         const result = await client.query(query, values);
         return result.rows;
     }
